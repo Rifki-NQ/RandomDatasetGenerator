@@ -1,21 +1,24 @@
-from core.exceptions import InputError
+from factories.feature_factory import FeatureFactory
+from core.exceptions import InputError, MenuError
 from core.utils import Helper
 from typing import Any
 
 class MenuContainer:
     @staticmethod
-    def get_menu() -> dict[str, Any]:
+    def get_menu() -> list[dict]:
         return [
         {
             "label": "Generator",
             "submenu": [
                 {
                     "label": "Generate random dataset",
-                    "action": None
+                    "class": "GeneratorCLI",
+                    "method": "generate_random_dataset"
                 },
                 {
-                    "label": "Generate random custom dataset",
-                    "action": None
+                    "label": "Generate custom random dataset",
+                    "class": "GeneratorCLI",
+                    "method": "generate_custom_random_dataset"
                 }
             ]
         },
@@ -24,7 +27,8 @@ class MenuContainer:
             "submenu": [
                 {
                     "label": "Set random config",
-                    "action": None
+                    "class": "GeneratorConfigCLI",
+                    "method": None
                 }
             ]
         }
@@ -33,10 +37,13 @@ class MenuContainer:
 class App:
     def __init__(self, menu):
         self.menu = menu
+        self.feature_factory = FeatureFactory()
     
-    def _prompt_index(self, min_index, max_index) -> int:
+    def _prompt_index(self, min_index: int, max_index: int) -> int | None:
         while True:
-            index = input("Enter by index: ")
+            index = input("Enter by index (q to quit): ")
+            if index.lower() == "q":
+                return None
             try:
                 if Helper.is_digit_in_range(index, min_index, max_index):
                     return int(index)
@@ -47,13 +54,19 @@ class App:
         while True:
                 menu_length = len(menu)
                 for index, item in enumerate(menu, 1):
-                    print(f"{index}. {item["label"]}")
+                    print(f"{index}. {item['label']}")
                 index = self._prompt_index(1, menu_length)
+                if index is None:
+                    break
                 index -= 1
                 if "submenu" in menu[index]:
                     self.menu_engine(menu[index]["submenu"])
                 else:
-                    print("A method is being run!")
+                    try:
+                        self.feature_factory.call_method(class_name = menu[index]["class"],
+                                                         method_name = menu[index]["method"])()
+                    except MenuError as e:
+                        print(f"\n{e}\n")
     
     def start_app(self) -> None:
             self.menu_engine(self.menu)

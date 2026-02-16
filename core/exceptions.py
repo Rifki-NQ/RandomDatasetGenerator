@@ -30,3 +30,14 @@ class EmptyDataError(FileError):
     """Raised when the file is empty"""
     pass
 
+class MenuError(AppError):
+    """Raised when there is menu related error"""
+    pass
+
+class InvalidClassNameError(MenuError):
+    """Raised when the class name is not valid"""
+    pass
+
+class InvalidMethodNameError(MenuError):
+    """Raised when the method name is not valid"""
+    pass
