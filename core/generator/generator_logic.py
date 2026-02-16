@@ -13,18 +13,23 @@ class Randomizer:
                        size: int = 1,
                        min_value: int = 1,
                        max_value: int = 2
-                       ) -> np.ndarray:
-        return self.rng.integers(min_value, max_value, size)
+                       ) -> np.ndarray | int:
+        value = self.rng.integers(min_value, max_value, size)
+        if size == 1:
+            value = value[0]
+        return value
     
     def get_random_float(self,
                          size: int = 1,
                          min_value: int = 1,
                          max_value: int = 2,
                          round_size: int | None = None
-                         ) -> np.ndarray:
+                         ) -> np.ndarray | float:
         value = self.rng.uniform(min_value, max_value, size)
         if round_size is not None:
             value = np.round(value, round_size)
+        if size == 1:
+            value = value[0]
         return value
     
     def _get_random_letters(self, strformat: strformats | None) -> str:
@@ -41,8 +46,11 @@ class Randomizer:
                           size: int = 1,
                           str_length: int = 1,
                           strformat: strformats | None = None
-                          ) -> list[str]:
+                          ) -> list[str] | str:
         letters = np.array(list(self._get_random_letters(strformat)))
         random_str = self.rng.choice(letters, size=(size, str_length))
-        return ["".join(row) for row in random_str]
+        value = ["".join(row) for row in random_str]
+        if size == 1:
+            value = value[0]
+        return value
         
