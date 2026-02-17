@@ -105,7 +105,7 @@ class YAMLFileHandler(DataIO):
 class Randomizer:
     def __init__(self):
         self.SEED = 42
-        self.rng = np.random.default_rng(self.SEED)
+        self.rng = np.random.default_rng()
         
     def get_random_int(self,
                        size: int = 1,
@@ -151,3 +151,19 @@ class Randomizer:
         if size == 1:
             value = value[0]
         return value
+    
+    #generation is theoretically slower since it has to produce many random values
+    def get_random_mixed(self, size: int = 1) -> list[Any] | Any:
+        value = []
+        rng_choice_range = self.rng.choice([2, 3, 4, 5, 6, 7, 8, 9, 10])
+        rng_choice_round_range = self.rng.choice([2, 3, 4, 5])
+        random_choices = [lambda: self.get_random_int(1, 1, rng_choice_range).item(),
+                         lambda: self.get_random_float(1, 1, rng_choice_range, rng_choice_round_range).item(),
+                         lambda: self.get_random_string(1, rng_choice_range, "mixed")]
+        for i in range(size):
+            choosen_type = self.rng.choice(random_choices)
+            value.append(choosen_type())
+        if size == 1:
+            value = value[0]
+        return value
+            
