@@ -26,6 +26,10 @@ class FileNotFoundAppError(FileError):
     """Raised when the file is not found"""
     pass
 
+class FilepathUndefinedError(FileError):
+    """Raised when the file path has not defined"""
+    pass
+
 class EmptyDataError(FileError):
     """Raised when the file is empty"""
     pass

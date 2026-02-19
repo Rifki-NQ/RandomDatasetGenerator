@@ -5,8 +5,8 @@ import string
 from typing import Any, Literal
 from pathlib import Path
 from abc import ABC, abstractmethod
-from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, InvalidFileTypeError,
-                             FileNotFoundAppError, EmptyDataError)
+from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, FilepathUndefinedError,
+                             FileNotFoundAppError, InvalidFileTypeError, EmptyDataError)
 strformats = Literal["uppercase", "lowercase", "mixed"]
 
 class Helper:
@@ -30,6 +30,9 @@ class Helper:
         return depth + max_child_depth
     
 class DataIO(ABC):
+    def __init__(self):
+        self.file_path: Path | None = None
+    
     @abstractmethod
     def read(self, **kwargs):
         pass
@@ -38,26 +41,36 @@ class DataIO(ABC):
     def save(self, data):
         pass
     
+    @abstractmethod
+    def register_filepath(self, file_path: Path):
+        pass
+    
     @staticmethod
-    def create_dataio(file_path: Path) -> DataIO:
+    def create_dataio(file_type: Literal["csv", "yaml"]) -> DataIO:
         valid_file_types = {"csv", "yaml"}
-        file_type = file_path.suffix.lstrip(".")
         if not file_type in valid_file_types:
             raise InvalidFileTypeError("Error: invalid file type provided!")
-        if not file_path.exists() and file_type == "csv":
-            raise FileNotFoundAppError(f"Error: failed to read/write ({file_path}) because the file does not exist!")
-        elif not file_path.exists() and file_type == "yaml":
-            raise FileNotFoundAppError(f"Error: failed to read/write ({file_path}) because the file does not exist!")
         if file_type == "csv":
-            return CSVFileHandler(file_path)
+            return CSVFileHandler()
         elif file_type == "yaml":
-            return YAMLFileHandler(file_path)
+            return YAMLFileHandler()
+        
+    def _check_file_path(self) -> None:
+        if self.file_path is None:
+            raise FilepathUndefinedError("Error: filepath has not registered yet!")
     
 class CSVFileHandler(DataIO):
-    def __init__(self, file_path: Path):
+    def __init__(self):
+        super().__init__()
+    
+    def register_filepath(self, file_path: Path) -> bool:
+        if file_path.suffix.lstrip(".") != "csv":
+            raise InvalidFileTypeError("Error: invalid file type provided!")
         self.file_path = file_path
+        return file_path.exists()
     
     def read(self, **kwargs) -> pd.DataFrame:
+        self._check_file_path()
         display_all = kwargs.get("display_all", False)
         try:
             if display_all:
@@ -67,15 +80,22 @@ class CSVFileHandler(DataIO):
         except pd.errors.EmptyDataError:
             raise EmptyDataError(f"Error: failed to read ({self.file_path}) because the file is empty!")
         except FileNotFoundError:
-            raise FileNotFoundAppError(f"Error: failed to read/write ({self.file_path}) because the file does not exist!")
+            raise FileNotFoundAppError(f"Error: failed to read ({self.file_path}) because the file does not exist!")
          
-    def save(self, df):
-        df.to_csv(self.file_path, index=False)
+    def save(self, data):
+        self._check_file_path()
+        data.to_csv(self.file_path, index=False)
          
 class YAMLFileHandler(DataIO):
-    def __init__(self, file_path: Path):
-        self.file_path = file_path
+    def __init__(self):
+        super().__init__()
     
+    def register_filepath(self, file_path: Path) -> bool:
+        if file_path.suffix.lstrip(".") != "yaml":
+            raise InvalidFileTypeError("Error: invalid file type provided!")
+        self.file_path = file_path
+        return file_path.exists()
+
     def _format_yaml(self, data) -> str:
         formatted_yaml = yaml.dump(
             data,
@@ -85,12 +105,13 @@ class YAMLFileHandler(DataIO):
         return formatted_yaml
     
     def read(self, **kwargs) -> dict[str, Any]:
+        self._check_file_path()
         format_data = kwargs.get("format_data", False)
         try:
             with open(self.file_path, "r") as file:
                 data = yaml.safe_load(file)
         except FileNotFoundError:
-            raise FileNotFoundAppError(f"Error: failed to read/write ({self.file_path}) because the file does not exist!")
+            raise FileNotFoundAppError(f"Error: failed to read ({self.file_path}) because the file does not exist!")
         #return error if any data is empty
         if data is None:
             raise EmptyDataError(f"Error: failed to read ({self.file_path}) because the file is empty!")
@@ -99,6 +120,7 @@ class YAMLFileHandler(DataIO):
         return data
         
     def save(self, data):
+        self._check_file_path()
         with open(self.file_path, "w+") as file:
             yaml.safe_dump(data, file, sort_keys=False)
             
