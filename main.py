@@ -26,9 +26,14 @@ class MenuContainer:
             "label": "Setting",
             "submenu": [
                 {
-                    "label": "Set random config",
-                    "class": "GeneratorConfigCLI",
-                    "method": None
+                    "label": "Show current filepaths",
+                    "class": "GeneratorSettingCLI",
+                    "method": "show_all_filepath"  
+                },
+                {
+                    "label": "Set filepath for generated dataset",
+                    "class": "GeneratorSettingCLI",
+                    "method": "filepath_setting"
                 }
             ]
         }
