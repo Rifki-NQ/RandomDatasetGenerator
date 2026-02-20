@@ -1,7 +1,9 @@
 from factories.feature_factory import FeatureFactory
 from core.exceptions import InputError, MenuError
 from core.utils import Helper
-from typing import Any
+
+#to-do: add logic to check if the file destination for generated dataset is empty
+#       if its not empty, ask whether to overwrite or cancel, do this before the generation
 
 class MenuContainer:
     @staticmethod
@@ -31,9 +33,9 @@ class MenuContainer:
                     "method": "show_all_filepath"  
                 },
                 {
-                    "label": "Set filepath for generated dataset",
+                    "label": "Change filepath for generated dataset",
                     "class": "GeneratorSettingCLI",
-                    "method": "filepath_setting"
+                    "method": "update_dataset_filepath"
                 }
             ]
         }

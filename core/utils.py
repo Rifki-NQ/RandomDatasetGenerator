@@ -63,6 +63,7 @@ class CSVFileHandler(DataIO):
     def __init__(self):
         super().__init__()
     
+    #return true if the file exist
     def register_filepath(self, file_path: Path) -> bool:
         if file_path.suffix.lstrip(".") != "csv":
             raise InvalidFileTypeError("Error: invalid file type provided!")
@@ -90,6 +91,7 @@ class YAMLFileHandler(DataIO):
     def __init__(self):
         super().__init__()
     
+    #return true if the file exist
     def register_filepath(self, file_path: Path) -> bool:
         if file_path.suffix.lstrip(".") != "yaml":
             raise InvalidFileTypeError("Error: invalid file type provided!")
