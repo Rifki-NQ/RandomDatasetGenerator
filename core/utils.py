@@ -49,7 +49,7 @@ class DataIO(ABC):
     def create_dataio(file_type: Literal["csv", "yaml"]) -> DataIO:
         valid_file_types = {"csv", "yaml"}
         if not file_type in valid_file_types:
-            raise InvalidFileTypeError("Error: invalid file type provided!")
+            raise InvalidFileTypeError("Error: invalid file type provided in the factory!")
         if file_type == "csv":
             return CSVFileHandler()
         elif file_type == "yaml":
@@ -65,8 +65,9 @@ class CSVFileHandler(DataIO):
     
     #return true if the file exist
     def register_filepath(self, file_path: Path) -> bool:
-        if file_path.suffix.lstrip(".") != "csv":
-            raise InvalidFileTypeError("Error: invalid file type provided!")
+        filetype = file_path.suffix.lstrip(".")
+        if filetype != "csv":
+            raise InvalidFileTypeError(f"Error: invalid file type provided! ({file_path}) | expected (csv), got ({filetype})")
         self.file_path = file_path
         return file_path.exists()
     
@@ -93,8 +94,9 @@ class YAMLFileHandler(DataIO):
     
     #return true if the file exist
     def register_filepath(self, file_path: Path) -> bool:
-        if file_path.suffix.lstrip(".") != "yaml":
-            raise InvalidFileTypeError("Error: invalid file type provided!")
+        filetype = file_path.suffix.lstrip(".")
+        if filetype != "yaml":
+            raise InvalidFileTypeError(f"Error: invalid file type provided! ({file_path}) | expected (yaml), got ({filetype})")
         self.file_path = file_path
         return file_path.exists()
 
