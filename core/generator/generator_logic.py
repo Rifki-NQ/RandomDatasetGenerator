@@ -1,24 +1,33 @@
 import pandas as pd
 from pathlib import Path
-from core.exceptions import FileError
+
+#warning: slower generation for dataset that generate strings
 
 class GeneratorLogic:
     def __init__(self, generator_setting_logic, csv_file_handler, randomizer):
         self.setting = generator_setting_logic
         self.csv_file_handler = csv_file_handler
         self.rng = randomizer
-        
-    #warning: slower generation for dataset that generate strings
     
-    def register_dataset_destination(self) -> None:
-        try:
-            dataset_filepath = self.setting.get_dataset_filepath()
-            self.csv_file_handler.register_filepath(Path(dataset_filepath))
-        except FileError as e:
-            print(e)
+    #register then check if the file is empty
+    def check_file_destination(self) -> bool:
+        dataset_filepath = self._register_dataset_destination()
+        if dataset_filepath is None:
+            return False
+        if not dataset_filepath.exists():
+            return False
+        #return true if the file size is not 0 (empty)
+        if dataset_filepath.stat().st_size != 0:
+            return True
+        return False
+    
+    #register file destination, raise error if something is not expected then return None
+    def _register_dataset_destination(self) -> Path | None:
+        dataset_filepath = self.setting.get_dataset_filepath()
+        self.csv_file_handler.register_filepath(Path(dataset_filepath))
+        return Path(dataset_filepath)
     
     def generate_dataset(self, column_length: int, row_length: int) -> None:
-        self.register_dataset_destination()
         generated_dataset = {}
         column_name = self.rng.get_random_string(column_length, 5, "uppercase")
         for column in range(column_length):
