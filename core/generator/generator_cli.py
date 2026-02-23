@@ -52,13 +52,8 @@ class BaseCLI:
             elif option.lower() == "n":
                 return False
             print("Invalid option inputted! (y = yes, n = no)")
-                
-class GeneratorCLI(BaseCLI):
-    def __init__(self, logic):
-        self.logic = logic
-    
-    @BaseCLI.cli_decorator
-    def generate_random_dataset(self) -> None:
+            
+    def _prompt_row_column_length(self) -> tuple[int, int]:
         while True:
             column_length = self._prompt_value("Enter column length: ", "Column length must be in digit!")
             if column_length > 0:
@@ -69,4 +64,31 @@ class GeneratorCLI(BaseCLI):
             if row_length > 0:
                 break
             print("Row length cannot be less than 1!")
+        return column_length, row_length
+    
+    def _prompt_column_name(self, column_length: int) -> list[str]:
+        print("Enter s to skip custom name for the rest of columns left")
+        skip_custom_name = False
+        columns_name = []
+        for i in range(column_length):
+            if not skip_custom_name:
+                new_name = input(f"Enter name for column no. {i} (s to skip): ")
+            if new_name.strip().lower() == "s":
+                new_name = "skip_custom_name"
+                skip_custom_name = True
+            columns_name.append(new_name)
+        return columns_name
+                
+class GeneratorCLI(BaseCLI):
+    def __init__(self, logic):
+        self.logic = logic
+    
+    @BaseCLI.cli_decorator
+    def generate_random_dataset(self) -> None:
+        column_length, row_length = self._prompt_row_column_length()
         self.logic.generate_dataset(column_length, row_length)
+        
+    @BaseCLI.cli_decorator
+    def generate_custom_random_dataset(self) -> None:
+        column_length, row_length = self._prompt_row_column_length()
+        custom_name = self._prompt_column_name(column_length)

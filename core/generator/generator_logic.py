@@ -37,3 +37,6 @@ class GeneratorLogic:
                 generated_dataset[column_name[column]].append(value[row])
         df_generated_dataset = pd.DataFrame(generated_dataset)
         self.csv_file_handler.save(df_generated_dataset)
+        
+    def generate_custom_dataset(self) -> None:
+        pass
