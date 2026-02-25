@@ -1,1 +1,8 @@
-dataset_filepath: data/dataset3.csv
+dataset_filepath: data/dataset2.csv
+min_int: 1
+max_int: 2
+min_float: 1
+max_float: 2
+float_round: 2
+string_length: 10
+string_type: mixed

@@ -93,13 +93,13 @@ class BaseCLI:
             if not 1 <= choosen_type <= 3:
                 print("Invalid index choice! (1 to 3)")
                 continue
-            return choosen_type
+            return string_type[choosen_type - 1]
             
 class GeneratorSettingCLI(BaseCLI):
     def __init__(self, logic):
         self.logic = logic
-        self.random_config = ["int_min", "int_max", "float_min", "float_max",
-                              "float_round", "string_length", "string_type"]
+        self.random_config = ["int_min_max", "float_min_max", "float_round",
+                              "string_length", "string_type"]
     
     @BaseCLI.cli_decorator
     def show_all_filepath(self) -> None:
@@ -116,19 +116,16 @@ class GeneratorSettingCLI(BaseCLI):
     def update_random_config(self) -> None:
         random_configs = []
         for config in self.random_config:
-            if config in ["int_min", "int_max"]:
-                if config == "int_max":
-                    continue
-                int_min, int_max = self._prompt_random_min_max("Enter min value for random int: ",
-                                                               "Enter max value for random int: ")
-            if config in ["float_min", "float_max"]:
-                if config == "float_max":
-                    continue
-                float_min, float_max = self._prompt_random_min_max("Enter min value for random float: ",
-                                                                   "Enter max value random float: ")
-            if config == "float_round":
-                float_round = self._prompt_round_value("Enter round value for random float: ")
-            if config == "string_length":
-                string_length = self._prompt_value("Enter string length for random string: ")
-            if config == "string_type":
-                string_type = self._prompt_string_type("Enter string type for random string")
+            if config == "int_min_max":
+                random_configs.extend(self._prompt_random_min_max("Enter min value for random int: ",
+                                                                  "Enter max value for random int: "))
+            elif config == "float_min_max":
+                random_configs.extend(self._prompt_random_min_max("Enter min value for random float: ",
+                                                                  "Enter max value random float: "))
+            elif config == "float_round":
+                random_configs.append(self._prompt_round_value("Enter round value for random float: "))
+            elif config == "string_length":
+                random_configs.append(self._prompt_value("Enter string length for random string: "))
+            elif config == "string_type":
+                random_configs.append(self._prompt_string_type("Enter string type for random string: "))
+        print(random_configs)
