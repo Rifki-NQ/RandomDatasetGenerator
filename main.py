@@ -2,8 +2,7 @@ from factories.feature_factory import FeatureFactory
 from core.exceptions import InputError, MenuError
 from core.utils import Helper
 
-#to-do: add logic to check if the file destination for generated dataset is empty
-#       if its not empty, ask whether to overwrite or cancel, do this before the generation
+#to-do: move performance counter to the actual logic instead of in the cli
 
 class MenuContainer:
     @staticmethod

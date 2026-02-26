@@ -128,4 +128,4 @@ class GeneratorSettingCLI(BaseCLI):
                 random_configs.append(self._prompt_value("Enter string length for random string: "))
             elif config == "string_type":
                 random_configs.append(self._prompt_string_type("Enter string type for random string: "))
-        print(random_configs)
+        self.logic.change_random_config(random_configs)
