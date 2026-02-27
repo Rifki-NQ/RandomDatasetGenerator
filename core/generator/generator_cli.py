@@ -80,8 +80,9 @@ class BaseCLI:
         return columns_name
                 
 class GeneratorCLI(BaseCLI):
-    def __init__(self, logic):
-        self.logic = logic
+    def __init__(self, generator_logic, setting_cli):
+        self.logic = generator_logic
+        self.setting = setting_cli
     
     @BaseCLI.cli_decorator
     def generate_random_dataset(self) -> None:
@@ -90,5 +91,6 @@ class GeneratorCLI(BaseCLI):
         
     @BaseCLI.cli_decorator
     def generate_custom_random_dataset(self) -> None:
+        self.setting.show_random_config()
         column_length, row_length = self._prompt_row_column_length()
         custom_name = self._prompt_column_name(column_length)

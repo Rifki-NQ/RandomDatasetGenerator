@@ -6,9 +6,11 @@ class BaseCLI:
     @staticmethod
     def cli_decorator(func):
         def wrapper(self):
-            print("----------")
+            if self.use_decorator:
+                print("----------")
             func(self)
-            print("----------")
+            if self.use_decorator:
+                print("----------")
         return wrapper
     
     def _prompt_index(self, message: str, min_value: int, max_value: int) -> int:
@@ -96,8 +98,9 @@ class BaseCLI:
             return string_type[choosen_type - 1]
             
 class GeneratorSettingCLI(BaseCLI):
-    def __init__(self, logic):
+    def __init__(self, logic, use_decorator: bool = True):
         self.logic = logic
+        self.use_decorator = use_decorator
         self.random_config = ["int_min_max", "float_min_max", "float_round",
                               "string_length", "string_type"]
     
