@@ -28,6 +28,11 @@ class GeneratorSettingLogic:
         config_data[self.DATASET_FILEPATH_KEY] = new_filepath
         self.yaml_file_handler.save(config_data)
         
+    def get_random_config(self) -> dict[str, int | str]:
+        config_data = self._read_config()
+        config_data.pop(self.DATASET_FILEPATH_KEY, None)
+        return config_data
+        
     def change_random_config(self, new_config: list[int | str]) -> None:
         config_data = self._read_config()
         new_config_data = {}

@@ -37,6 +37,11 @@ class MenuContainer:
                     "method": "update_dataset_filepath"
                 },
                 {
+                    "label": "Show random value configuration",
+                    "class": "GeneratorSettingCLI",
+                    "method": "show_random_config"
+                },
+                {
                     "label": "Update random value configuration",
                     "class": "GeneratorSettingCLI",
                     "method": "update_random_config"

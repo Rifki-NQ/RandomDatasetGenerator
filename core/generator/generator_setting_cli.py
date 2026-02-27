@@ -113,6 +113,13 @@ class GeneratorSettingCLI(BaseCLI):
         print("Dataset filepath updated successfully!")
         
     @BaseCLI.cli_decorator
+    def show_random_config(self) -> None:
+        print("Randomizer configuration: ")
+        random_config_data = self.logic.get_random_config()
+        for key, value in random_config_data.items():
+            print(f"  {key.replace("_", " ")}: {value}")
+        
+    @BaseCLI.cli_decorator
     def update_random_config(self) -> None:
         random_configs = []
         for config in self.random_config:
