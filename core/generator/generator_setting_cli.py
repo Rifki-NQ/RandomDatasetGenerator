@@ -43,6 +43,19 @@ class BaseCLI:
                 continue
             return new_filepath
         
+    def _prompt_column_row_length(self, column_message: str, row_message: str) -> tuple[int, int]:
+        while True:
+            column_length = self._prompt_value(column_message)
+            if column_length > 0:
+                break
+            print("Column length cannot be less than 1!")
+        while True:
+            row_length = self._prompt_value(row_message)
+            if row_length > 0:
+                break
+            print("Row length cannot be less than 1!")
+        return column_length, row_length
+        
     def _prompt_random_min_max(self, min_message: str, max_message: str) -> tuple[int, int]:
         while True:
             min_value = input(min_message)
@@ -101,8 +114,8 @@ class GeneratorSettingCLI(BaseCLI):
     def __init__(self, logic, use_decorator: bool = True):
         self.logic = logic
         self.use_decorator = use_decorator
-        self.random_config = ["int_min_max", "float_min_max", "float_round",
-                              "string_length", "string_type"]
+        self.random_config = ["column_row_length", "int_min_max", "float_min_max",
+                              "float_round", "string_length", "string_type"]
     
     @BaseCLI.cli_decorator
     def show_all_filepath(self) -> None:
@@ -126,7 +139,10 @@ class GeneratorSettingCLI(BaseCLI):
     def update_random_config(self) -> None:
         random_configs = []
         for config in self.random_config:
-            if config == "int_min_max":
+            if config == "column_row_length":
+                random_configs.extend(self._prompt_column_row_length("Enter column length: ",
+                                                                         "Enter row length: "))
+            elif config == "int_min_max":
                 random_configs.extend(self._prompt_random_min_max("Enter min value for random int: ",
                                                                   "Enter max value for random int: "))
             elif config == "float_min_max":

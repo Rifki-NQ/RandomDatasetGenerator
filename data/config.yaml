@@ -1,8 +1,10 @@
 dataset_filepath: data/dataset3.csv
+column_length: 5
+row_length: 1000
 int_min: 1
-int_max: 10
-float_min: 2
-float_max: 20
-float_round: 8
-string_length: 10
-string_type: lowercase
+int_max: 99
+float_min: 1
+float_max: 50
+float_round: 5
+string_length: 20
+string_type: mixed
