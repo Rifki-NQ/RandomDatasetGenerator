@@ -1,5 +1,6 @@
 from core.utils import Helper
-from core.exceptions import (InputError, InvalidFileTypeError, FilepathUndefinedError)
+from core.exceptions import (InputError, InvalidFileTypeError, FilepathUndefinedError,
+                             ConfigDataError)
 import time
 
 class BaseCLI:
@@ -92,5 +93,19 @@ class GeneratorCLI(BaseCLI):
     @BaseCLI.cli_decorator
     def generate_custom_random_dataset(self) -> None:
         self.setting.show_random_config()
-        column_length, row_length = self._prompt_row_column_length()
-        custom_name = self._prompt_column_name(column_length)
+        print("")
+        self.setting.show_all_filepath()
+        print("----------")
+        print("1. Generate random dataset with current configuration\n"
+              "2. Change configuration")
+        option = self._prompt_index("Choose an action (by index): ", 1, 2)
+        if option == 1:
+            try:
+                column_length = self.logic.get_column_row_length()[0]
+                column_names = self._prompt_column_name(column_length)
+                self.logic.generate_custom_dataset(column_names)
+            except ConfigDataError as e:
+                print(e)
+                return
+        elif option == 2:
+            pass
