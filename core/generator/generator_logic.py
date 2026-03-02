@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from exceptions import MissingConfigKeyError
 
@@ -60,6 +61,30 @@ class GeneratorLogic:
     def _get_string_type(self) -> str:
         return self._get_config_by_key("string_type")[0]
         
+    def _get_random_int(self, size: int, int_min: int, int_max: int) -> int | np.ndarray:
+        return self.rng.get_random_int(size, int_min, int_max)
+    
+    def _get_random_float(self, size: int, float_min: int, float_max: int, float_round: int) -> float | np.ndarray:
+        return self.rng.get_random_float(size, float_min, float_max, float_round)
+    
+    def _get_random_string(self, size: int, string_length: int, string_type: str) -> str | list[str]:
+        return self.rng.get_random_string(size, string_length, string_type)
+        
+    def _get_random_by_index(self, random_index: int, **kwargs) -> int | float | str | np.ndarray | list[str]:
+        #1 = int, 2 = float, 3 = string, 4 = anything between the three
+        if random_index == 1:
+            return self._get_random_int(**kwargs)
+        elif random_index == 2:
+            return self._get_random_float(**kwargs)
+        elif random_index == 3:
+            return self._get_random_string(**kwargs)
+        else:
+            random_methods = [lambda: self._get_random_int(**kwargs),
+                              lambda: self._get_random_float(**kwargs),
+                              lambda: self._get_random_string(**kwargs)]
+            choosen_method = np.random.choice(random_methods)
+            return choosen_method()
+        
     def generate_dataset(self, column_length: int, row_length: int) -> None:
         generated_dataset = {}
         column_name = self.rng.get_random_string(column_length, 5, "uppercase")
@@ -71,7 +96,7 @@ class GeneratorLogic:
         df_generated_dataset = pd.DataFrame(generated_dataset)
         self.csv_file_handler.save(df_generated_dataset)
         
-    def generate_custom_dataset(self, column_names: list) -> None:
+    def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> None:
         #config data preparation
         column_length, row_length = self.get_column_row_length()
         int_min, int_max = self._get_int_min_max()
@@ -79,6 +104,10 @@ class GeneratorLogic:
         float_round = self._get_float_round()
         string_length = self._get_string_length()
         string_type = self._get_string_type()
+        
+        #check if column names and random types length match
+        if len(column_names) != len(random_types):
+            raise ValueError("Error: column names and random types length mismatch!")
         
         generated_dataset = {}
         

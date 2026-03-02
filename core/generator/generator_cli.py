@@ -28,12 +28,14 @@ class BaseCLI:
             print("----------")
         return wrapper
     
-    def _prompt_index(self, message: str, min_value: int, max_value: int) -> int:
+    def _prompt_index(self, message: str, min_value: int, max_value: int, skip_option: bool = False) -> int | str:
         while True:
             try:
                 index = input(message)
                 if Helper.is_digit_in_range(index, min_value, max_value):
                     return int(index)
+                elif index.strip().lower() == "s" and skip_option:
+                    return index
             except InputError as e:
                 print(e)
                 
@@ -68,7 +70,7 @@ class BaseCLI:
         return column_length, row_length
     
     def _prompt_column_name(self, column_length: int) -> list[str]:
-        print("Enter s to skip custom name for the rest of columns left")
+        print("Enter s to skip custom name for the rest of the columns left")
         skip_custom_name = False
         columns_name = []
         for i in range(column_length):
@@ -79,6 +81,23 @@ class BaseCLI:
                 skip_custom_name = True
             columns_name.append(new_name)
         return columns_name
+    
+    def _prompt_random_type(self, column_length: int) -> list[int]:
+        print("Choose random type (by index):\n"
+              "1. int\n"
+              "2. float\n"
+              "3. string")
+        print("or type s to use random type for the rest of the columns left")
+        skip_custom_type = False
+        columns_type = []
+        for i in range(column_length):
+            if not skip_custom_type:
+                type_index = self._prompt_index(f"Enter type for column no. {i} (s to skip): ", 1, 3, True)
+            if type_index.strip().lower() == "s":
+                type_index = 4
+                skip_custom_type = True
+            columns_type.append(type_index)
+        return columns_type
                 
 class GeneratorCLI(BaseCLI):
     def __init__(self, generator_logic, setting_cli):
@@ -103,7 +122,8 @@ class GeneratorCLI(BaseCLI):
             try:
                 column_length = self.logic.get_column_row_length()[0]
                 column_names = self._prompt_column_name(column_length)
-                self.logic.generate_custom_dataset(column_names)
+                random_types = self._prompt_random_type(column_length)
+                self.logic.generate_custom_dataset(column_names, random_types)
             except ConfigDataError as e:
                 print(e)
                 return
