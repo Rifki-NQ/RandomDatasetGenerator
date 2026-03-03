@@ -5,8 +5,10 @@ import string
 from typing import Any, Literal
 from pathlib import Path
 from abc import ABC, abstractmethod
+from core.config_models import IntConfig, FloatConfig, StringConfig
 from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, FilepathUndefinedError,
                              FileNotFoundAppError, InvalidFileTypeError, EmptyDataError)
+
 strformats = Literal["uppercase", "lowercase", "mixed"]
 
 class Helper:
@@ -133,48 +135,35 @@ class Randomizer:
         self.SEED = 42
         self.rng = np.random.default_rng()
         
-    def get_random_int(self,
-                       size: int = 1,
-                       min_value: int = 1,
-                       max_value: int = 2
-                       ) -> np.ndarray | int:
-        value = self.rng.integers(min_value, max_value, size)
-        if size == 1:
-            value = value[0]
+    def get_random_int(self, config: IntConfig) -> np.ndarray | int:
+        value = self.rng.integers(config.int_min, config.int_max, config.size)
+        if config.size == 1:
+            value = int(value[0])
         return value
     
-    def get_random_float(self,
-                         size: int = 1,
-                         min_value: int = 1,
-                         max_value: int = 2,
-                         round_size: int | None = None
-                         ) -> np.ndarray | float:
-        value = self.rng.uniform(min_value, max_value, size)
-        if round_size is not None:
-            value = np.round(value, round_size)
-        if size == 1:
-            value = value[0]
+    def get_random_float(self, config: FloatConfig) -> np.ndarray | float:
+        value = self.rng.uniform(config.float_min, config.float_max, config.size)
+        if config.float_round is not None:
+            value = np.round(value, config.float_round)
+        if config.size == 1:
+            value = float(value[0])
         return value
     
-    def _get_random_letters(self, strformat: strformats | None) -> str:
-        if strformat is None:
-            strformat = "mixed"
-        if strformat == "lowercase":
+    def _get_random_letters(self, string_type: strformats | None) -> str:
+        if string_type is None:
+            string_type = "mixed"
+        if string_type == "lowercase":
             return string.ascii_lowercase
-        elif strformat == "uppercase":
+        elif string_type == "uppercase":
             return string.ascii_uppercase
-        elif strformat == "mixed":
+        elif string_type == "mixed":
             return string.ascii_letters
     
-    def get_random_string(self,
-                          size: int = 1,
-                          str_length: int = 1,
-                          strformat: strformats | None = None
-                          ) -> list[str] | str:
-        letters = np.array(list(self._get_random_letters(strformat)))
-        random_str = self.rng.choice(letters, size=(size, str_length))
+    def get_random_string(self, config: StringConfig) -> list[str] | str:
+        letters = np.array(list(self._get_random_letters(config.string_type)))
+        random_str = self.rng.choice(letters, size=(config.size, config.string_length))
         value = ["".join(row) for row in random_str]
-        if size == 1:
+        if config.size == 1:
             value = value[0]
         return value
     
@@ -183,13 +172,12 @@ class Randomizer:
         value = []
         rng_choice_range = self.rng.choice([2, 3, 4, 5, 6, 7, 8, 9, 10])
         rng_choice_round_range = self.rng.choice([2, 3, 4, 5])
-        random_choices = [lambda: self.get_random_int(1, 1, rng_choice_range).item(),
-                         lambda: self.get_random_float(1, 1, rng_choice_range, rng_choice_round_range).item(),
-                         lambda: self.get_random_string(1, rng_choice_range, "mixed")]
+        random_choices = [lambda: self.get_random_int(IntConfig(size=1, int_min=1, int_max=rng_choice_range)),
+                         lambda: self.get_random_float(FloatConfig(size=1, float_min=1, float_max=rng_choice_range, float_round=rng_choice_round_range)),
+                         lambda: self.get_random_string(StringConfig(size=1, string_length=rng_choice_range, string_type="mixed"))]
         for i in range(size):
             choosen_type = self.rng.choice(random_choices)
             value.append(choosen_type())
         if size == 1:
             value = value[0]
         return value
-            
