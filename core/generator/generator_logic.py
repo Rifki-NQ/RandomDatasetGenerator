@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from exceptions import MissingConfigKeyError
+from core.config_models import IntConfig, FloatConfig, StringConfig
+from core.exceptions import MissingConfigKeyError
 
 #warning: slower generation for dataset that generate strings
 
@@ -29,11 +30,8 @@ class GeneratorLogic:
         self.csv_file_handler.register_filepath(Path(dataset_filepath))
         return Path(dataset_filepath)
     
-    def _get_configuration(self) -> dict[str, int | str]:
-        return self.setting.read_config()
-    
     def _get_config_by_key(self, *keys: str) -> list[int | str]:
-        config_data = self._get_configuration()
+        config_data = self.setting.read_config()
         values = []
         for key in keys:
             if not isinstance(key, str):
@@ -61,29 +59,28 @@ class GeneratorLogic:
     def _get_string_type(self) -> str:
         return self._get_config_by_key("string_type")[0]
         
-    def _get_random_int(self, size: int, int_min: int, int_max: int) -> int | np.ndarray:
-        return self.rng.get_random_int(size, int_min, int_max)
+    def _get_random_int(self, config: IntConfig) -> int | np.ndarray:
+        return self.rng.get_random_int(config)
     
-    def _get_random_float(self, size: int, float_min: int, float_max: int, float_round: int) -> float | np.ndarray:
-        return self.rng.get_random_float(size, float_min, float_max, float_round)
+    def _get_random_float(self, config: FloatConfig) -> float | np.ndarray:
+        return self.rng.get_random_float(config)
     
-    def _get_random_string(self, size: int, string_length: int, string_type: str) -> str | list[str]:
-        return self.rng.get_random_string(size, string_length, string_type)
+    def _get_random_string(self, config: StringConfig) -> str | list[str]:
+        return self.rng.get_random_string(config)
         
     def _get_random_by_index(self, random_index: int, **kwargs) -> int | float | str | np.ndarray | list[str]:
         #1 = int, 2 = float, 3 = string, 4 = anything between the three
+        if random_index == 4:
+            random_index = np.random.choice([1, 2, 3])
         if random_index == 1:
-            return self._get_random_int(**kwargs)
+            config = IntConfig(**kwargs)
+            return self._get_random_int(config)
         elif random_index == 2:
-            return self._get_random_float(**kwargs)
+            config = FloatConfig(**kwargs)
+            return self._get_random_float(config)
         elif random_index == 3:
-            return self._get_random_string(**kwargs)
-        else:
-            random_methods = [lambda: self._get_random_int(**kwargs),
-                              lambda: self._get_random_float(**kwargs),
-                              lambda: self._get_random_string(**kwargs)]
-            choosen_method = np.random.choice(random_methods)
-            return choosen_method()
+            config = StringConfig(**kwargs)
+            return self._get_random_string(config)
         
     def generate_dataset(self, column_length: int, row_length: int) -> None:
         generated_dataset = {}
@@ -105,6 +102,9 @@ class GeneratorLogic:
         string_length = self._get_string_length()
         string_type = self._get_string_type()
         
+        #config for random column name
+        column_name_config = StringConfig(size=1, string_length=10, string_type="uppercase")
+        
         #check if column names and random types length match
         if len(column_names) != len(random_types):
             raise ValueError("Error: column names and random types length mismatch!")
@@ -115,7 +115,7 @@ class GeneratorLogic:
         for column in range(column_length):
             column_name = column_names[column]
             if column_name == "skip_custom_name":
-                column_name = self.rng.get_random_string(1, 5, "mixed")
+                column_name = self.rng.get_random_string(column_name_config)
             pass
             generated_dataset[column_name] = []
             #row generation per column

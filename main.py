@@ -3,7 +3,6 @@ from core.exceptions import InputError, MenuError
 from core.utils import Helper
 
 #to-do: move performance counter to the actual logic instead of in the cli
-#to-do: use dataclass to store config config for each randomizer type
 
 class MenuContainer:
     @staticmethod

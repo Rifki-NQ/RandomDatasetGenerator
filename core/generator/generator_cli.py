@@ -1,6 +1,4 @@
-from core.utils import Helper
-from core.exceptions import (InputError, InvalidFileTypeError, FilepathUndefinedError,
-                             ConfigDataError)
+from core.exceptions import InvalidFileTypeError, FilepathUndefinedError, ConfigDataError
 import time
 
 class BaseCLI:
@@ -30,14 +28,16 @@ class BaseCLI:
     
     def _prompt_index(self, message: str, min_value: int, max_value: int, skip_option: bool = False) -> int | str:
         while True:
-            try:
-                index = input(message)
-                if Helper.is_digit_in_range(index, min_value, max_value):
+            index = input(message)
+            if index.isdigit():
+                index = int(index)
+                if min_value <= index <= max_value:
                     return int(index)
-                elif index.strip().lower() == "s" and skip_option:
-                    return index
-            except InputError as e:
-                print(e)
+                print(f"Value must be in range of {min_value} to {max_value}")
+            elif index.strip().lower() == "s" and skip_option:
+                return index
+            else:
+                print("Value must be in digit!")
                 
     def _prompt_value(self, input_message: str, error_message: str | None = "Value must be in digit!") -> int:
         while True:
@@ -92,8 +92,10 @@ class BaseCLI:
         columns_type = []
         for i in range(column_length):
             if not skip_custom_type:
-                type_index = self._prompt_index(f"Enter type for column no. {i} (s to skip): ", 1, 3, True)
-            if type_index.strip().lower() == "s":
+                type_index = self._prompt_index(message=f"Enter type for column no. {i} (s to skip): ",
+                                                min_value=1, max_value=3, skip_option=True)
+            if isinstance(type_index, str) and type_index.lower().strip() == "s":
+                #send index no. 4 to logic
                 type_index = 4
                 skip_custom_type = True
             columns_type.append(type_index)
