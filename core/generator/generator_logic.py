@@ -54,7 +54,7 @@ class GeneratorLogic:
         return self._get_config_by_key("float_round")[0]
     
     def _get_string_length(self) -> int:
-        return self._get_config_by_key("float_round")[0]
+        return self._get_config_by_key("string_length")[0]
     
     def _get_string_type(self) -> str:
         return self._get_config_by_key("string_type")[0]
@@ -69,9 +69,7 @@ class GeneratorLogic:
         return self.rng.get_random_string(config)
         
     def _get_random_by_index(self, random_index: int, **kwargs) -> int | float | str | np.ndarray | list[str]:
-        #1 = int, 2 = float, 3 = string, 4 = anything between the three
-        if random_index == 4:
-            random_index = np.random.choice([1, 2, 3])
+        #1 = int, 2 = float, 3 = string
         if random_index == 1:
             config = IntConfig(**kwargs)
             return self._get_random_int(config)
@@ -81,6 +79,29 @@ class GeneratorLogic:
         elif random_index == 3:
             config = StringConfig(**kwargs)
             return self._get_random_string(config)
+        else:
+            raise ValueError("Error: invalid random index provided!")
+        
+    #validate random types, return new random types index if random_type not in 1, 2, 3
+    def _validate_random_type(self, random_types: list[int]) -> list[int]:
+        new_random_type = []
+        for random_type in random_types:
+            if random_type not in (1, 2, 3):
+                new_random_type.append(self.rng.get_random_int(IntConfig(size=1, int_min=1, int_max=4)))
+            else:
+                new_random_type.append(random_type)
+        return new_random_type
+    
+    #validate column name, return new random column name if column name = "skip_custom_name"
+    def _validate_column_name(self, column_names: list[str]) -> list[str]:
+        column_name_config = StringConfig(size=1, string_length=10, string_type="uppercase")
+        new_column_names = []
+        for name in column_names:
+            if name == "skip_custom_name":
+                new_column_names.append(self.rng.get_random_string(column_name_config))
+            else:
+                new_column_names.append(name)
+        return new_column_names
         
     def generate_dataset(self, column_length: int, row_length: int) -> None:
         generated_dataset = {}
@@ -102,22 +123,26 @@ class GeneratorLogic:
         string_length = self._get_string_length()
         string_type = self._get_string_type()
         
-        #config for random column name
-        column_name_config = StringConfig(size=1, string_length=10, string_type="uppercase")
+        #cli data validation
+        random_types = self._validate_random_type(random_types=random_types)
+        column_names = self._validate_column_name(column_names=column_names)
         
         #check if column names and random types length match
         if len(column_names) != len(random_types):
             raise ValueError("Error: column names and random types length mismatch!")
         
-        generated_dataset = {}
-        
         #column generation
+        generated_dataset = {}
         for column in range(column_length):
-            column_name = column_names[column]
-            if column_name == "skip_custom_name":
-                column_name = self.rng.get_random_string(column_name_config)
-            pass
-            generated_dataset[column_name] = []
-            #row generation per column
-            for row in range(row_length):
-                pass
+            match random_types[column]:
+                case 1:
+                    random_config = dict(size=row_length, int_min=int_min, int_max=int_max)
+                case 2:
+                    random_config = dict(size=row_length, float_min=float_min,
+                                         float_max=float_max, float_round=float_round)
+                case 3:
+                    random_config = dict(size=row_length, string_length=string_length, string_type=string_type)
+            #generate random values in bulk
+            random_values = self._get_random_by_index(random_index=random_types[column], **random_config)
+            generated_dataset[column_names[column]] = list(random_values)
+        self.csv_file_handler.save(pd.DataFrame(generated_dataset))
