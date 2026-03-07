@@ -42,9 +42,14 @@ class MenuContainer:
                     "method": "show_random_config"
                 },
                 {
-                    "label": "Update random value configuration",
+                    "label": "Change random value configuration",
                     "class": "GeneratorSettingCLI",
-                    "method": "update_random_config"
+                    "method": "change_random_config"
+                },
+                {
+                    "label": "Update all random value configuration",
+                    "class": "GeneratorSettingCLI",
+                    "method": "update_random_configs"
                 }
             ]
         }
