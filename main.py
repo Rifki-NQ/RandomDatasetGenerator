@@ -2,8 +2,6 @@ from factories.feature_factory import FeatureFactory
 from core.exceptions import InputError, MenuError
 from core.utils import Helper
 
-#to-do: move performance counter to the actual logic instead of in the cli
-
 class MenuContainer:
     @staticmethod
     def get_menu() -> list[dict]:

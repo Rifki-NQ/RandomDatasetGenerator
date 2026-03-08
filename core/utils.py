@@ -5,7 +5,7 @@ import string
 from typing import Any, Literal
 from pathlib import Path
 from abc import ABC, abstractmethod
-from core.config_models import IntConfig, FloatConfig, StringConfig
+from core.models.config_models import IntConfig, FloatConfig, StringConfig
 from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, FilepathUndefinedError,
                              FileNotFoundAppError, InvalidFileTypeError, EmptyDataError)
 

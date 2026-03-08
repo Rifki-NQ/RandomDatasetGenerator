@@ -104,7 +104,14 @@ class GeneratorCLI(BaseCLI):
     @BaseCLI.cli_decorator
     def generate_random_dataset(self) -> None:
         column_length, row_length = self._prompt_row_column_length()
-        self.logic.generate_dataset(column_length, row_length)
+        gen = self.logic.generate_dataset(column_length, row_length)
+        try:
+            while True:
+                progress = next(gen)
+                print(f"Progress: {progress}%", flush=True, end="\r")
+        except StopIteration as e:
+            runtime = e.value
+        print(f"Dataset generated successfully in {runtime:.2f}s!")
         
     @BaseCLI.cli_decorator
     def generate_custom_random_dataset(self) -> None:
@@ -125,7 +132,18 @@ class GeneratorCLI(BaseCLI):
                         column_length = self.logic.get_column_row_length()[0]
                         column_names = self._prompt_column_name(column_length)
                         random_types = self._prompt_random_type(column_length)
-                        self.logic.generate_custom_dataset(column_names, random_types)
+                        
+                        gen = self.logic.generate_custom_dataset(column_names, random_types)
+                        print("Generating!\n",
+                              "----------")
+                        try:
+                            while True:
+                                progress = next(gen)
+                                print(f"Progress: {progress}%", flush=True, end="\r")
+                        except StopIteration as e:
+                            runtime = e.value
+                        print(f"Dataset generated sucessfully in {runtime:.2f}s!")
+                        
                     except ConfigDataError as e:
                         print(e)
                         return

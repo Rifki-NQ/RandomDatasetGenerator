@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from core.config_models import IntConfig, FloatConfig, StringConfig
+import time
+from typing import Generator
+from core.models.progress_models import GenerationProgress
+from core.models.config_models import IntConfig, FloatConfig, StringConfig
 from core.exceptions import MissingConfigKeyError
 
 #warning: slower generation for dataset that generate strings
@@ -103,7 +106,11 @@ class GeneratorLogic:
                 new_column_names.append(name)
         return new_column_names
         
-    def generate_dataset(self, column_length: int, row_length: int) -> None:
+    def generate_dataset(self, column_length: int, row_length: int) -> Generator[int, None, float]:
+        #initiate performance and update tracker
+        generation_update = GenerationProgress(total_value=column_length)
+        start = time.perf_counter()
+        
         generated_dataset = {}
         column_name = self.rng.get_random_string(StringConfig(size=column_length,
                                                               string_length=5,
@@ -112,9 +119,13 @@ class GeneratorLogic:
         for column in range(column_length):
             value = self.rng.get_random_mixed(row_length)
             generated_dataset[column_name[column]] = list(value)
+            yield generation_update.send_update(column + 1)
         self.csv_file_handler.save(pd.DataFrame(generated_dataset))
         
-    def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> None:
+        end = time.perf_counter()
+        return end - start
+        
+    def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> Generator[int, None, float]:
         #config data preparation
         column_length, row_length = self.get_column_row_length()
         int_min, int_max = self._get_int_min_max()
@@ -131,6 +142,10 @@ class GeneratorLogic:
         if len(column_names) != len(random_types):
             raise ValueError("Error: column names and random types length mismatch!")
         
+        #initiate performance and update tracker
+        generation_update = GenerationProgress(total_value=column_length)
+        start = time.perf_counter()
+        
         #dataset generation per column
         generated_dataset = {}
         for column in range(column_length):
@@ -145,4 +160,8 @@ class GeneratorLogic:
             #generate random values in bulk
             random_values = self._get_random_by_index(random_index=random_types[column], **random_config)
             generated_dataset[column_names[column]] = list(random_values)
+            yield generation_update.send_update(column + 1)
         self.csv_file_handler.save(pd.DataFrame(generated_dataset))
+        
+        end = time.perf_counter()
+        return end - start

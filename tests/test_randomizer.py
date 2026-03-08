@@ -1,5 +1,5 @@
 from core.utils import Randomizer
-from core.config_models import IntConfig, FloatConfig, StringConfig
+from core.models.config_models import IntConfig, FloatConfig, StringConfig
 
 def test_randomizer():
     create_random = Randomizer()
