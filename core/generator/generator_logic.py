@@ -105,14 +105,14 @@ class GeneratorLogic:
         
     def generate_dataset(self, column_length: int, row_length: int) -> None:
         generated_dataset = {}
-        column_name = self.rng.get_random_string(column_length, 5, "uppercase")
+        column_name = self.rng.get_random_string(StringConfig(size=column_length,
+                                                              string_length=5,
+                                                              string_type="uppercase"))
+        #dataset generation per column
         for column in range(column_length):
             value = self.rng.get_random_mixed(row_length)
-            generated_dataset[column_name[column]] = []
-            for row in range(row_length):
-                generated_dataset[column_name[column]].append(value[row])
-        df_generated_dataset = pd.DataFrame(generated_dataset)
-        self.csv_file_handler.save(df_generated_dataset)
+            generated_dataset[column_name[column]] = list(value)
+        self.csv_file_handler.save(pd.DataFrame(generated_dataset))
         
     def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> None:
         #config data preparation
@@ -131,7 +131,7 @@ class GeneratorLogic:
         if len(column_names) != len(random_types):
             raise ValueError("Error: column names and random types length mismatch!")
         
-        #column generation
+        #dataset generation per column
         generated_dataset = {}
         for column in range(column_length):
             match random_types[column]:

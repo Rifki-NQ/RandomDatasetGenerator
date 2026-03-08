@@ -1,5 +1,4 @@
 from core.exceptions import InvalidFileTypeError, FilepathUndefinedError, ConfigDataError
-import time
 
 class BaseCLI:
     @staticmethod
@@ -13,12 +12,8 @@ class BaseCLI:
                     if not self._prompt_option():
                         #cancel operation if user input no overwrite
                         print("Operation cancelled!")
-                        print("----------")
-                        return
-                start = time.perf_counter()
-                func(self)
-                end = time.perf_counter()
-                print(f"Dataset generated successfully in {end - start:.6f} seconds")
+                    else:
+                        func(self)
             except InvalidFileTypeError as e:
                 print(e)
             except FilepathUndefinedError as e:
@@ -124,18 +119,19 @@ class GeneratorCLI(BaseCLI):
                   "4. Quit")
             option = self._prompt_index("Choose an action (by index): ", 1, 4)
             print("----------")
-            if option == 1:
-                try:
-                    column_length = self.logic.get_column_row_length()[0]
-                    column_names = self._prompt_column_name(column_length)
-                    random_types = self._prompt_random_type(column_length)
-                    self.logic.generate_custom_dataset(column_names, random_types)
-                except ConfigDataError as e:
-                    print(e)
-                    return
-            elif option == 2:
-                self.setting.change_random_config()
-            elif option == 3:
-                self.setting.update_dataset_filepath()
-            else:
-                break
+            match option:
+                case 1:
+                    try:
+                        column_length = self.logic.get_column_row_length()[0]
+                        column_names = self._prompt_column_name(column_length)
+                        random_types = self._prompt_random_type(column_length)
+                        self.logic.generate_custom_dataset(column_names, random_types)
+                    except ConfigDataError as e:
+                        print(e)
+                        return
+                case 2:
+                    self.setting.change_random_config()
+                case 3:
+                    self.setting.update_dataset_filepath()
+                case 4:
+                    break
