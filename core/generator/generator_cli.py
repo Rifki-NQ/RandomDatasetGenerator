@@ -114,20 +114,28 @@ class GeneratorCLI(BaseCLI):
     @BaseCLI.cli_decorator
     def generate_custom_random_dataset(self) -> None:
         self.setting.show_random_config()
-        print("")
-        self.setting.show_all_filepath()
         print("----------")
-        print("1. Generate random dataset with current configuration\n"
-              "2. Change configuration")
-        option = self._prompt_index("Choose an action (by index): ", 1, 2)
-        if option == 1:
-            try:
-                column_length = self.logic.get_column_row_length()[0]
-                column_names = self._prompt_column_name(column_length)
-                random_types = self._prompt_random_type(column_length)
-                self.logic.generate_custom_dataset(column_names, random_types)
-            except ConfigDataError as e:
-                print(e)
-                return
-        elif option == 2:
-            pass
+        self.setting.show_all_filepath()
+        while True:
+            print("----------")
+            print("1. Generate random dataset\n"
+                  "2. Change random configuration\n"
+                  "3. Change dataset filepath\n"
+                  "4. Quit")
+            option = self._prompt_index("Choose an action (by index): ", 1, 4)
+            print("----------")
+            if option == 1:
+                try:
+                    column_length = self.logic.get_column_row_length()[0]
+                    column_names = self._prompt_column_name(column_length)
+                    random_types = self._prompt_random_type(column_length)
+                    self.logic.generate_custom_dataset(column_names, random_types)
+                except ConfigDataError as e:
+                    print(e)
+                    return
+            elif option == 2:
+                self.setting.change_random_config()
+            elif option == 3:
+                self.setting.update_dataset_filepath()
+            else:
+                break
