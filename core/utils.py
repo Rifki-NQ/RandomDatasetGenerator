@@ -131,9 +131,9 @@ class YAMLFileHandler(DataIO):
             yaml.safe_dump(data, file, sort_keys=False)
             
 class Randomizer:
-    def __init__(self):
-        self.SEED = 42
-        self.rng = np.random.default_rng()
+    def __init__(self, seed: int | None = None):
+        self.SEED = seed
+        self.rng = np.random.default_rng(self.SEED)
         
     def get_random_int(self, config: IntConfig) -> np.ndarray | int:
         value = self.rng.integers(config.int_min, config.int_max, config.size)
