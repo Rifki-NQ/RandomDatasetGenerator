@@ -2,12 +2,13 @@ from core.exceptions import FileNotFoundAppError, FilepathNotFoundError, Filepat
 from pathlib import Path
 
 class GeneratorSettingLogic:
+    RANDOM_CONFIG = {"column_length", "row_length", "int_min", "int_max", "float_min", 
+                     "float_max", "float_round", "string_length", "string_type"}
+    CONFIG_FILEPATH = Path("data/config.yaml")
+    DATASET_FILEPATH_KEY = "dataset_filepath"
+    
     def __init__(self, yaml_file_handler):
         self.yaml_file_handler = yaml_file_handler
-        self.CONFIG_FILEPATH = Path("data/config.yaml")
-        self.DATASET_FILEPATH_KEY = "dataset_filepath"
-        self.RANDOM_CONFIG = ["int_min", "int_max", "float_min", "float_max", "float_round",
-                              "string_length", "string_type"]
         
     def read_config(self) -> dict[str, str | int]:
         if not self.yaml_file_handler.register_filepath(self.CONFIG_FILEPATH):
@@ -30,8 +31,12 @@ class GeneratorSettingLogic:
         
     def get_random_config(self) -> dict[str, int | str]:
         config_data = self.read_config()
-        config_data.pop(self.DATASET_FILEPATH_KEY, None)
-        return config_data
+        random_config = {}
+        #return only random config configurations
+        for key, value in config_data.items():
+            if key in self.RANDOM_CONFIG:
+                random_config[key] = value
+        return random_config
         
     def change_random_config(self, new_config: list[int | str]) -> None:
         config_data = self.read_config()
