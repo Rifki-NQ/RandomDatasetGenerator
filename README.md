@@ -164,6 +164,4 @@ The test suite covers:
 ## Known Issues & TODO
 
 - **Bug in `_prompt_column_name`** — the `skip_custom_name` variable is set but not checked correctly on subsequent iterations, so the skip behaviour may not work as expected.
-- Add a central validation layer for all config data before use.
-- Replace positional list access in `change_random_config` / `update_random_configs` with dict-based lookup for safer config updates.
 - Add `argparse` support for non-interactive usage (e.g., `python main.py --generate --columns 5 --rows 100`).

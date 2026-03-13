@@ -111,11 +111,12 @@ class BaseCLI:
             return string_type[choosen_type - 1]
             
 class GeneratorSettingCLI(BaseCLI):
+    RANDOM_CONFIG = ["column_row_length", "int_min_max", "float_min_max",
+                     "float_round", "string_length", "string_type"]
+    
     def __init__(self, logic, use_decorator: bool = True):
         self.logic = logic
         self.use_decorator = use_decorator
-        self.random_config = ["column_row_length", "int_min_max", "float_min_max",
-                              "float_round", "string_length", "string_type"]
     
     @BaseCLI.cli_decorator
     def show_all_filepath(self) -> None:
@@ -137,59 +138,68 @@ class GeneratorSettingCLI(BaseCLI):
         
     @BaseCLI.cli_decorator
     def change_random_config(self) -> None:
-        random_config_data = self.logic.get_random_config()
+        random_config = self.logic.get_random_config()
         counter = 1
-        for key, value in random_config_data.items():
+        for key, value in random_config.items():
             if key in ("row_length", "int_max", "float_max"):
                 print(f"   {key.replace("_", " ")}: {value}")
             else:
                 print(f"{counter}. {key.replace("_", " ")}: {value}")
                 counter+=1
-        index = self._prompt_index("\nSelect which config to change: ", 1, (len(random_config_data) - 3))
+        index = self._prompt_index("\nSelect which config to change: ", 1, (len(random_config) - 3))
         match index:
             case 1:
                 column_length, row_length = self._prompt_column_row_length("Enter column length: ",
                                                                            "Enter row length: ")
-                random_config_data["column_length"] = column_length
-                random_config_data["row_length"] = row_length
+                random_config["column_length"] = column_length
+                random_config["row_length"] = row_length
             case 2:
                 int_min, int_max = self._prompt_random_min_max("Enter min value for random int: ",
                                                                 "Enter max value for random int: ")
-                random_config_data["int_min"] = int_min
-                random_config_data["int_max"] = int_max
+                random_config["int_min"] = int_min
+                random_config["int_max"] = int_max
             case 3:
                 float_min, float_max = self._prompt_random_min_max("Enter min value for random float: ",
                                                                    "Enter max value random float: ")
-                random_config_data["float_min"] = float_min
-                random_config_data["float_max"] = float_max
+                random_config["float_min"] = float_min
+                random_config["float_max"] = float_max
             case 4:
                 float_round = self._prompt_round_value("Enter round value for random float: ")
-                random_config_data["float_round"] = float_round
+                random_config["float_round"] = float_round
             case 5:
                 string_length = self._prompt_value("Enter string length for random string: ")
-                random_config_data["string_length"] = string_length
+                random_config["string_length"] = string_length
             case 6:
                 string_type = self._prompt_string_type("Enter string type for random string: ")
-                random_config_data["string_type"] = string_type
-        self.logic.change_random_config(list(random_config_data.values()))
+                random_config["string_type"] = string_type
+        self.logic.change_random_config(random_config)
         
     @BaseCLI.cli_decorator
     def update_random_configs(self) -> None:
-        random_configs = []
-        for config in self.random_config:
-            if config == "column_row_length":
-                random_configs.extend(self._prompt_column_row_length("Enter column length: ",
-                                                                         "Enter row length: "))
-            elif config == "int_min_max":
-                random_configs.extend(self._prompt_random_min_max("Enter min value for random int: ",
-                                                                  "Enter max value for random int: "))
-            elif config == "float_min_max":
-                random_configs.extend(self._prompt_random_min_max("Enter min value for random float: ",
-                                                                  "Enter max value random float: "))
-            elif config == "float_round":
-                random_configs.append(self._prompt_round_value("Enter round value for random float: "))
-            elif config == "string_length":
-                random_configs.append(self._prompt_value("Enter string length for random string: "))
-            elif config == "string_type":
-                random_configs.append(self._prompt_string_type("Enter string type for random string: "))
-        self.logic.change_random_configs(random_configs)
+        random_config = self.logic.get_random_config()
+        #input column and row length
+        column_length, row_length = self._prompt_column_row_length("Enter column length: ",
+                                                                   "Enter row length: ")
+        random_config["column_length"] = column_length
+        random_config["row_length"] = row_length
+        #input int min and max
+        int_min, int_max = self._prompt_random_min_max("Enter min value for random int: ",
+                                                       "Enter max value for random int: ")
+        random_config["int_min"] = int_min
+        random_config["int_max"] = int_max
+        #input float min and max
+        float_min, float_max = self._prompt_random_min_max("Enter min value for random float: ",
+                                                           "Enter max value random float: ")
+        random_config["float_min"] = float_min
+        random_config["float_max"] = float_max
+        #input float round
+        float_round = self._prompt_round_value("Enter round value for random float: ")
+        random_config["float_round"] = float_round
+        #input string length
+        string_length = self._prompt_value("Enter string length for random string: ")
+        random_config["string_length"] = string_length
+        #input string type
+        string_type = self._prompt_string_type("Enter string type for random string: ")
+        random_config["string_type"] = string_type
+        
+        self.logic.change_random_config(random_config)

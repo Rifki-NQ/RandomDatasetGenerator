@@ -38,14 +38,6 @@ class GeneratorSettingLogic:
                 random_config[key] = value
         return random_config
         
-    def change_random_config(self, new_config: list[int | str]) -> None:
+    def change_random_config(self, new_config: dict[str, int | str]) -> None:
         config_data = self.read_config()
-        new_config_data = {}
-        counter = 0
-        for key, value in config_data.items():
-            if key == self.DATASET_FILEPATH_KEY:
-                new_config_data[key] = value
-            else:
-                new_config_data[key] = new_config[counter]
-                counter += 1
-        self.yaml_file_handler.save(new_config_data)
+        self.yaml_file_handler.save(config_data | new_config)
