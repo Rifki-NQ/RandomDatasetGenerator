@@ -64,16 +64,17 @@ class BaseCLI:
             print("Row length cannot be less than 1!")
         return column_length, row_length
     
-    def _prompt_column_name(self, column_length: int) -> list[str]:
+    def _prompt_column_name(self, column_length: int) -> list[str | None]:
         print("Enter s to skip custom name for the rest of the columns left")
         skip_custom_name = False
         columns_name = []
         for i in range(column_length):
-            if not skip_custom_name:
+            if skip_custom_name:
+                new_name = None
+            else:
                 new_name = input(f"Enter name for column no. {i} (s to skip): ")
-            if new_name.strip().lower() == "s":
-                new_name = "skip_custom_name"
-                skip_custom_name = True
+                if new_name.strip().lower() == "s":
+                    skip_custom_name = True
             columns_name.append(new_name)
         return columns_name
     

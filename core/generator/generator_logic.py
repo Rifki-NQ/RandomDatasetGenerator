@@ -95,12 +95,12 @@ class GeneratorLogic:
                 new_random_type.append(random_type)
         return new_random_type
     
-    #validate column name, return new random column name if column name = "skip_custom_name"
-    def _validate_column_name(self, column_names: list[str]) -> list[str]:
+    #validate column name, return new random column name if column name is None
+    def _validate_column_name(self, column_names: list[str | None]) -> list[str]:
         column_name_config = StringConfig(size=1, string_length=10, string_type="uppercase")
         new_column_names = []
         for name in column_names:
-            if name == "skip_custom_name":
+            if name is None:
                 new_column_names.append(self.rng.get_random_string(column_name_config))
             else:
                 new_column_names.append(name)
