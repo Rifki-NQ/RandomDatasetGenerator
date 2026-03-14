@@ -176,7 +176,7 @@ class GeneratorSettingCLI(BaseCLI):
         
     @BaseCLI.cli_decorator
     def update_random_configs(self) -> None:
-        random_config = self.logic.get_random_config()
+        random_config = {}
         #input column and row length
         column_length, row_length = self._prompt_column_row_length("Enter column length: ",
                                                                    "Enter row length: ")
