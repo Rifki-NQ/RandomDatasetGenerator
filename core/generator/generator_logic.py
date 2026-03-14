@@ -5,7 +5,7 @@ import time
 from typing import Generator
 from core.models.progress_models import GenerationProgress
 from core.models.config_models import IntConfig, FloatConfig, StringConfig
-from core.exceptions import MissingConfigKeyError
+from core.exceptions import MissingConfigKeyError, FileNotEmptyError
 
 #warning: slower generation for dataset that generate strings
 
@@ -15,20 +15,17 @@ class GeneratorLogic:
         self.csv_file_handler = csv_file_handler
         self.rng = randomizer
     
-    #register then check if the file is empty
-    def check_file_destination(self) -> bool:
+    def initiate_filepath_registration(self) -> None:
         dataset_filepath = self._register_dataset_destination()
-        if dataset_filepath is None:
-            return False
-        if not dataset_filepath.exists():
-            return False
+        if self._file_not_empty(dataset_filepath=dataset_filepath):
+            raise FileNotEmptyError()
+    
+    def _file_not_empty(self, dataset_filepath: Path) -> bool:
         #return true if the file size is not 0 (empty)
-        if dataset_filepath.stat().st_size != 0:
-            return True
-        return False
+        return dataset_filepath.stat().st_size != 0
     
     #register file destination, raise error if something is not expected then return None
-    def _register_dataset_destination(self) -> Path | None:
+    def _register_dataset_destination(self) -> Path:
         dataset_filepath = self.setting.get_dataset_filepath()
         self.csv_file_handler.register_filepath(Path(dataset_filepath))
         return Path(dataset_filepath)

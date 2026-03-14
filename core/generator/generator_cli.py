@@ -1,23 +1,31 @@
-from core.exceptions import InvalidFileTypeError, FilepathUndefinedError, ConfigDataError
+from core.exceptions import (InvalidFileTypeError, FilepathUndefinedError, ConfigDataError,
+                             FileNotEmptyError)
 
 class BaseCLI:
     @staticmethod
     def cli_decorator(func):
         def wrapper(self):
             print("----------")
+
             try:
-                #validate file destination
-                if self.logic.check_file_destination():
-                    print("File destination already has data inside it, overwrite?")
-                    if not self._prompt_option():
-                        #cancel operation if user input no overwrite
-                        print("Operation cancelled!")
-                    else:
-                        func(self)
+                #initiate filepath registration then validate it
+                self.logic.initiate_filepath_registration()
+                should_run = True
+
+            except FileNotEmptyError:
+                print("File destination already has data inside it, overwrite?")
+                should_run = self._prompt_option()
+
             except InvalidFileTypeError as e:
                 print(e)
+                should_run = False
+
             except FilepathUndefinedError as e:
-                print(e, "please check if the file type provided is valid (csv or yaml)")
+                print(e)
+                should_run = False
+
+            if should_run:
+                func(self)
             print("----------")
         return wrapper
     
