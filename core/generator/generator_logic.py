@@ -21,10 +21,11 @@ class GeneratorLogic:
             raise FileNotEmptyError()
     
     def _file_not_empty(self, dataset_filepath: Path) -> bool:
+        if not dataset_filepath.exists():
+            return False
         #return true if the file size is not 0 (empty)
         return dataset_filepath.stat().st_size != 0
     
-    #register file destination, raise error if something is not expected then return None
     def _register_dataset_destination(self) -> Path:
         dataset_filepath = self.setting.get_dataset_filepath()
         self.csv_file_handler.register_filepath(Path(dataset_filepath))
