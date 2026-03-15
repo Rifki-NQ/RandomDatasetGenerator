@@ -32,17 +32,16 @@ class BaseCLI:
                 
     def _prompt_filepath(self, message: str) -> str:
         while True:
-            new_filepath = input(message)
+            new_filepath = input(message).strip().replace(" ", "_")
             new_filepath_folder = str(Path(new_filepath).parent)
-            new_filepath_file = Path(new_filepath).suffix
             if new_filepath_folder != "data":
                 print("dataset file must be in designated folder (example: data/file.csv)")
                 continue
-            if new_filepath_file != ".csv":
+            if not new_filepath.lower().endswith(".csv"):
                 print("dataset file must be a csv file (example: data/file.csv)")
                 continue
             return new_filepath
-        
+    
     def _prompt_column_row_length(self, column_message: str, row_message: str) -> tuple[int, int]:
         while True:
             column_length = self._prompt_value(column_message)
