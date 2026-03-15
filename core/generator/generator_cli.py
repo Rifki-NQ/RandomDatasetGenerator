@@ -80,7 +80,7 @@ class BaseCLI:
             if skip_custom_name:
                 new_name = None
             else:
-                new_name = input(f"Enter name for column no. {i} (s to skip): ")
+                new_name = input(f"Enter name for column no. {i + 1} (s to skip): ")
                 if new_name.strip().lower() == "s":
                     skip_custom_name = True
             columns_name.append(new_name)
@@ -96,7 +96,7 @@ class BaseCLI:
         columns_type = []
         for i in range(column_length):
             if not skip_custom_type:
-                type_index = self._prompt_index(message=f"Enter type for column no. {i} (s to skip): ",
+                type_index = self._prompt_index(message=f"Enter type for column no. {i + 1} (s to skip): ",
                                                 min_value=1, max_value=3, skip_option=True)
             if isinstance(type_index, str) and type_index.lower().strip() == "s":
                 #send index no. 4 to logic
