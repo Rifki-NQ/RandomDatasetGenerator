@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import time
-from typing import Generator
+from typing import Generator, Any
 from core.models.progress_models import GenerationProgress
 from core.models.config_models import IntConfig, FloatConfig, StringConfig
 from core.exceptions import MissingConfigKeyError, FileNotEmptyError
@@ -104,6 +104,12 @@ class GeneratorLogic:
                 new_column_names.append(name)
         return new_column_names
         
+    #convert any scalar value into list, return original if not scalar
+    def _normalize_random_value(self, value: np.ndarray | list | int | float | str) -> np.ndarray | list:
+        if isinstance(value, (int, float, str)):
+            return [value]
+        return value
+        
     def generate_dataset(self, column_length: int, row_length: int) -> Generator[int, None, float]:
         #initiate performance and update tracker
         generation_update = GenerationProgress(total_value=column_length)
@@ -116,7 +122,7 @@ class GeneratorLogic:
         #dataset generation per column
         for column in range(column_length):
             value = self.rng.get_random_mixed(row_length)
-            generated_dataset[column_name[column]] = list(value)
+            generated_dataset[column_name[column]] = self._normalize_random_value(value=value)
             yield generation_update.send_update(column + 1)
         self.csv_file_handler.save(pd.DataFrame(generated_dataset))
         
@@ -157,7 +163,7 @@ class GeneratorLogic:
                     random_config = dict(size=row_length, string_length=string_length, string_type=string_type)
             #generate random values in bulk
             random_values = self._get_random_by_index(random_index=random_types[column], **random_config)
-            generated_dataset[column_names[column]] = list(random_values)
+            generated_dataset[column_names[column]] = self._normalize_random_value(value=random_values)
             yield generation_update.send_update(column + 1)
         self.csv_file_handler.save(pd.DataFrame(generated_dataset))
         
