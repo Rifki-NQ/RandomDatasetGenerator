@@ -82,6 +82,7 @@ class BaseCLI:
             else:
                 new_name = input(f"Enter name for column no. {i + 1} (s to skip): ")
                 if new_name.strip().lower() == "s":
+                    new_name = None
                     skip_custom_name = True
             columns_name.append(new_name)
         return columns_name
@@ -91,17 +92,19 @@ class BaseCLI:
               "1. int\n"
               "2. float\n"
               "3. string")
-        print("or type s to use random type for the rest of the columns left")
+        print("or type s to use random type for the rest of the columns left\n"
+              "----------")
         skip_custom_type = False
         columns_type = []
         for i in range(column_length):
-            if not skip_custom_type:
+            if skip_custom_type:
+                type_index = 4
+            else:
                 type_index = self._prompt_index(message=f"Enter type for column no. {i + 1} (s to skip): ",
                                                 min_value=1, max_value=3, skip_option=True)
-            if isinstance(type_index, str) and type_index.lower().strip() == "s":
-                #send index no. 4 to logic
-                type_index = 4
-                skip_custom_type = True
+                if isinstance(type_index, str) and type_index.lower().strip() == "s":
+                    type_index = 4
+                    skip_custom_type = True
             columns_type.append(type_index)
         return columns_type
                 

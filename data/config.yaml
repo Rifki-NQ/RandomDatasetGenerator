@@ -1,6 +1,6 @@
 dataset_filepath: data/dataset3.csv
-column_length: 100
-row_length: 10000
+column_length: 10
+row_length: 100
 int_min: 1
 int_max: 101
 float_min: 1

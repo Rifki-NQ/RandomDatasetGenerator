@@ -163,5 +163,4 @@ The test suite covers:
 
 ## Known Issues & TODO
 
-- **Bug in `_prompt_column_name`** — the `skip_custom_name` variable is set but not checked correctly on subsequent iterations, so the skip behaviour may not work as expected.
 - Add `argparse` support for non-interactive usage (e.g., `python main.py --generate --columns 5 --rows 100`).
