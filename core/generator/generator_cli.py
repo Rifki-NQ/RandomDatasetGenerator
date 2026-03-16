@@ -98,12 +98,12 @@ class BaseCLI:
         columns_type = []
         for i in range(column_length):
             if skip_custom_type:
-                type_index = 4
+                type_index = None
             else:
                 type_index = self._prompt_index(message=f"Enter type for column no. {i + 1} (s to skip): ",
                                                 min_value=1, max_value=3, skip_option=True)
                 if isinstance(type_index, str) and type_index.lower().strip() == "s":
-                    type_index = 4
+                    type_index = None
                     skip_custom_type = True
             columns_type.append(type_index)
         return columns_type

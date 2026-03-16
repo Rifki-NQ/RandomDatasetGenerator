@@ -83,11 +83,11 @@ class GeneratorLogic:
         else:
             raise ValueError("Error: invalid random index provided!")
         
-    #validate random types, return new random types index if random_type not in 1, 2, 3
-    def _validate_random_type(self, random_types: list[int]) -> list[int]:
+    #validate random types, fill random type with number 1 to 3 if random type is None
+    def _validate_random_type(self, random_types: list[int | None]) -> list[int]:
         new_random_type = []
         for random_type in random_types:
-            if random_type not in (1, 2, 3):
+            if random_type is None:
                 new_random_type.append(self.rng.get_random_int(IntConfig(size=1, int_min=1, int_max=4)))
             else:
                 new_random_type.append(random_type)
