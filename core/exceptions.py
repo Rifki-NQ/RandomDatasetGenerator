@@ -41,10 +41,6 @@ class ConfigDataError(FileError):
     """Raised when there is config related error"""
     pass
 
-class FilepathNotFoundError(ConfigDataError):
-    """Raised when a filepath is missing in the config data"""
-    pass
-
 class MissingConfigKeyError(ConfigDataError):
     """Raised when expected key in config data is missing"""
     pass
