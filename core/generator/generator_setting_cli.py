@@ -138,8 +138,19 @@ class GeneratorSettingCLI(BaseCLI):
     @BaseCLI.cli_decorator
     def change_random_config(self) -> None:
         random_config = self.logic.get_random_config()
+        random_config_map = {
+            "column_length": random_config["column_length"],
+            "row_length": random_config["row_length"],
+            "int_min": random_config["int_min"],
+            "int_max": random_config["int_max"],
+            "float_min": random_config["float_min"],
+            "float_max": random_config["float_max"],
+            "float_round": random_config["float_round"],
+            "string_length": random_config["string_length"],
+            "string_type": random_config["string_type"]
+        }
         counter = 1
-        for key, value in random_config.items():
+        for key, value in random_config_map.items():
             if key in ("row_length", "int_max", "float_max"):
                 print(f"   {key.replace("_", " ")}: {value}")
             else:
