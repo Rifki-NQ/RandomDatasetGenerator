@@ -45,6 +45,10 @@ class MissingConfigKeyError(ConfigDataError):
     """Raised when expected key in config data is missing"""
     pass
 
+class InvalidConfigTypeError(ConfigDataError):
+    """Raised when config data contains value type that is not expected"""
+    pass
+
 class MenuError(AppError):
     """Raised when there is menu related error"""
     pass

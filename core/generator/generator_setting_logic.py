@@ -1,3 +1,4 @@
+from core.models.config_models import ConfigValidator
 from core.exceptions import FileNotFoundAppError, FilepathUndefinedError, MissingConfigKeyError
 from pathlib import Path
 
@@ -15,6 +16,7 @@ class GeneratorSettingLogic:
             raise FileNotFoundAppError(f"Error: failed to read config data: ({self.CONFIG_FILEPATH}) because the file does not exist!")
         config_data = self.yaml_file_handler.read(format_data=False)
         self._validate_config_data(config_data)
+        ConfigValidator(**config_data) #validate type, then discard
         return config_data
     
     def _validate_config_data(self, config_data: dict[str, int | str]) -> None:
