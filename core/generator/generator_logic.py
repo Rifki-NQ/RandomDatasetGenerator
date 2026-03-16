@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import time
-from typing import Generator, Any
+from typing import Generator
 from core.models.progress_models import GenerationProgress
 from core.models.config_models import IntConfig, FloatConfig, StringConfig
-from core.exceptions import MissingConfigKeyError, FileNotEmptyError
+from core.exceptions import FileNotEmptyError
 
 #warning: slower generation for dataset that generate strings
 
@@ -30,35 +30,9 @@ class GeneratorLogic:
         dataset_filepath = self.setting.get_dataset_filepath()
         self.csv_file_handler.register_filepath(Path(dataset_filepath))
         return Path(dataset_filepath)
-    
-    def _get_config_by_key(self, *keys: str) -> list[int | str]:
-        config_data = self.setting.read_config()
-        values = []
-        for key in keys:
-            if not isinstance(key, str):
-                raise TypeError(f"Error: expected string argument, but got {type(key).__name__} instead")
-            if key not in config_data:
-                raise MissingConfigKeyError(f"Error: missing ({key}) key from the config!")
-            values.append(config_data[key])
-        return values
-    
-    def get_column_row_length(self) -> tuple[int, int]:
-        return tuple(self._get_config_by_key("column_length", "row_length"))
         
-    def _get_int_min_max(self) -> tuple[int, int]:
-        return tuple(self._get_config_by_key("int_min", "int_max"))
-    
-    def _get_float_min_max(self) -> tuple[int, int]:
-        return tuple(self._get_config_by_key("float_min", "float_max"))
-    
-    def _get_float_round(self) -> int:
-        return self._get_config_by_key("float_round")[0]
-    
-    def _get_string_length(self) -> int:
-        return self._get_config_by_key("string_length")[0]
-    
-    def _get_string_type(self) -> str:
-        return self._get_config_by_key("string_type")[0]
+    def get_column_length(self) -> int:
+        return self.setting.get_random_config()["column_length"]
         
     def _get_random_int(self, config: IntConfig) -> int | np.ndarray:
         return self.rng.get_random_int(config)
@@ -130,13 +104,15 @@ class GeneratorLogic:
         return end - start
         
     def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> Generator[int, None, float]:
-        #config data preparation
-        column_length, row_length = self.get_column_row_length()
-        int_min, int_max = self._get_int_min_max()
-        float_min, float_max = self._get_float_min_max()
-        float_round = self._get_float_round()
-        string_length = self._get_string_length()
-        string_type = self._get_string_type()
+        #random config data preparation
+        random_config = self.setting.get_random_config()
+        
+        column_length, row_length = random_config["column_length"], random_config["row_length"]
+        int_min, int_max = random_config["int_min"], random_config["int_max"]
+        float_min, float_max = random_config["float_min"], random_config["float_max"]
+        float_round = random_config["float_round"]
+        string_length = random_config["string_length"]
+        string_type = random_config["string_type"]
         
         #cli data validation
         random_types = self._validate_random_type(random_types=random_types)

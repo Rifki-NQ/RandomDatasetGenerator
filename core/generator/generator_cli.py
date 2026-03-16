@@ -141,7 +141,7 @@ class GeneratorCLI(BaseCLI):
             match option:
                 case 1:
                     try:
-                        column_length = self.logic.get_column_row_length()[0]
+                        column_length = self.logic.get_column_length()
                         column_names = self._prompt_column_name(column_length)
                         random_types = self._prompt_random_type(column_length)
                         
