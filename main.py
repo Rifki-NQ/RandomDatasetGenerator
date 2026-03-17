@@ -1,3 +1,4 @@
+import argparse
 from factories.feature_factory import FeatureFactory
 from core.exceptions import InputError, MenuError
 from core.utils import Helper
@@ -90,6 +91,24 @@ class App:
     def start_app(self) -> None:
             self.menu_engine(self.menu)
             
+    def call_directly(self, class_name: str, method_name: str, **args) -> None:
+        self.feature_factory.call_method(class_name, method_name)(**args)
+            
 if __name__ == "__main__":
     app = App(MenuContainer.get_menu())
-    app.start_app()
+    
+    #initiate argparse for non interactive use
+    parser = argparse.ArgumentParser(description="Dataset Generator")
+    
+    parser.add_argument("generate", choices=["g", "gen", "generate"],help="Start generating dataset")
+    parser.add_argument("column_length", nargs="?", type=int, default=10, help="Number of columns to generate")
+    parser.add_argument("row_length", nargs="?",type=int, default=100, help="Number of rows to generate")
+    
+    args = parser.parse_args()
+    #non interactive menu
+    if args.generate:
+        app.call_directly(class_name="GeneratorCLI", method_name="generate_random_dataset",
+                          column_length=args.column_length, row_length=args.row_length)
+    #interactive menu
+    else:
+        app.start_app()

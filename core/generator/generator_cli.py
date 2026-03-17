@@ -4,7 +4,7 @@ from core.exceptions import (InvalidFileTypeError, FilepathUndefinedError, Confi
 class BaseCLI:
     @staticmethod
     def cli_decorator(func):
-        def wrapper(self):
+        def wrapper(self, **kwargs):
             print("----------")
 
             try:
@@ -25,7 +25,7 @@ class BaseCLI:
                 should_run = False
 
             if should_run:
-                func(self)
+                func(self, **kwargs)
             print("----------")
         return wrapper
     
@@ -114,8 +114,12 @@ class GeneratorCLI(BaseCLI):
         self.setting = setting_cli
     
     @BaseCLI.cli_decorator
-    def generate_random_dataset(self) -> None:
-        column_length, row_length = self._prompt_row_column_length()
+    def generate_random_dataset(self, **kwargs) -> None:
+        if not kwargs:
+            column_length, row_length = self._prompt_row_column_length()
+        else:
+            column_length = kwargs.get("column_length")
+            row_length = kwargs.get("row_length")
         gen = self.logic.generate_dataset(column_length, row_length)
         try:
             while True:
