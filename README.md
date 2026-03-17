@@ -86,6 +86,8 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Interactive Usage
+
 ```bash
 python main.py
 ```
@@ -112,6 +114,21 @@ Select `Setting` to view or update:
 - The output filepath for generated datasets (must be inside the `data/` folder and end in `.csv`)
 - Any individual random value configuration option (int range, float range, float precision, string length, string case)
 - All configuration options at once
+
+### Non-interactive Usage
+
+You can use the tool directly using command
+```bash
+python main.py generate
+```
+
+| Command         | Description |
+|-----------------|-----------------------------------------------------------|
+| `generate`      | Generate dataset with `10 columns` and `100 rows` of data |
+| `generate 5`    | Generate dataset with `5 columns` and `100 rows` of data  |
+| `generate 5 50` | Generate dataset with `5 columns` and `50 rows` of data   |
+
+*note that the default value for column length is 10 and row length is 100*
 
 ---
 
@@ -160,7 +177,3 @@ The test suite covers:
 - `test_get_dict_depth_logic.py` — verifies the recursive dict-depth utility used internally by the app.
 
 ---
-
-## Known Issues & TODO
-
-- Add `argparse` support for non-interactive usage (e.g., `python main.py --generate --columns 5 --rows 100`).
