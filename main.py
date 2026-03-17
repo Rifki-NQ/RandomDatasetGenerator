@@ -100,7 +100,7 @@ if __name__ == "__main__":
     #initiate argparse for non interactive use
     parser = argparse.ArgumentParser(description="Dataset Generator")
     
-    parser.add_argument("generate", choices=["g", "gen", "generate"],help="Start generating dataset")
+    parser.add_argument("generate", nargs="?", help="Start generating dataset")
     parser.add_argument("column_length", nargs="?", type=int, default=10, help="Number of columns to generate")
     parser.add_argument("row_length", nargs="?",type=int, default=100, help="Number of rows to generate")
     
