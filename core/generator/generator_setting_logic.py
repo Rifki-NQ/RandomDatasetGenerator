@@ -1,6 +1,7 @@
-from core.models.config_models import ConfigValidator
-from core.exceptions import FileNotFoundAppError, FilepathUndefinedError, MissingConfigKeyError
 from pathlib import Path
+from dataclasses import replace, asdict
+from core.models.config_models import GeneratorConfig, RandomConfig
+from core.exceptions import FileNotFoundAppError, FilepathUndefinedError, MissingConfigKeyError
 
 class GeneratorSettingLogic:
     DATASET_FILEPATH_KEY = "dataset_filepath"
@@ -11,13 +12,11 @@ class GeneratorSettingLogic:
     def __init__(self, yaml_file_handler):
         self.yaml_file_handler = yaml_file_handler
         
-    def read_config(self) -> dict[str, str | int]:
+    def _read_config(self) -> GeneratorConfig:
         if not self.yaml_file_handler.register_filepath(self.CONFIG_FILEPATH):
             raise FileNotFoundAppError(f"Error: failed to read config data: ({self.CONFIG_FILEPATH}) because the file does not exist!")
-        config_data = self.yaml_file_handler.read(format_data=False)
-        self._validate_config_data(config_data)
-        ConfigValidator(**config_data) #validate type, then discard
-        return config_data
+        raw_config_data = self.yaml_file_handler.read(format_data=False)
+        return GeneratorConfig(**raw_config_data)
     
     def _validate_config_data(self, config_data: dict[str, int | str]) -> None:
         missing_keys = self.RANDOM_CONFIG_KEY - config_data.keys()
@@ -27,26 +26,21 @@ class GeneratorSettingLogic:
             raise MissingConfigKeyError(f"Error: {missing_keys} does not exist in the config data!")
     
     def get_dataset_filepath(self) -> str:
-        config_data = self.read_config()
-        dataset_filepath = config_data.get(self.DATASET_FILEPATH_KEY)
+        config_data = self._read_config()
+        dataset_filepath = config_data.dataset_filepath
         if dataset_filepath is None:
             raise FilepathUndefinedError(f"Error: {self.DATASET_FILEPATH_KEY} is undefined in the config_data!")
         return dataset_filepath
     
-    def get_random_config(self) -> dict[str, int | str]:
-        config_data = self.read_config()
-        random_config = {}
-        #return only random config configurations
-        for key, value in config_data.items():
-            if key in self.RANDOM_CONFIG_KEY:
-                random_config[key] = value
-        return random_config
+    def get_random_config(self) -> RandomConfig:
+        return self._read_config().random_config()
     
     def change_dataset_filepath(self, new_filepath: str) -> None:
         config_data = self.read_config()
         config_data[self.DATASET_FILEPATH_KEY] = new_filepath
         self.yaml_file_handler.save(config_data)
         
-    def change_random_config(self, new_config: dict[str, int | str]) -> None:
-        config_data = self.read_config()
-        self.yaml_file_handler.save(config_data | new_config)
+    def change_random_config(self, new_config: RandomConfig) -> None:
+        config_data = self._read_config()
+        updated_config = replace(config_data, **asdict(new_config))
+        self.yaml_file_handler.save(asdict(updated_config))

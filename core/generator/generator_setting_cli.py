@@ -1,5 +1,7 @@
+from dataclasses import asdict
 from pathlib import Path
 from core.utils import Helper
+from core.models.config_models import RandomConfig
 from core.exceptions import InputError
 
 class BaseCLI:
@@ -132,56 +134,45 @@ class GeneratorSettingCLI(BaseCLI):
     def show_random_config(self) -> None:
         print("Randomizer configuration: ")
         random_config_data = self.logic.get_random_config()
-        for key, value in random_config_data.items():
+        for key, value in asdict(random_config_data).items():
             print(f"  {key.replace("_", " ")}: {value}")
         
     @BaseCLI.cli_decorator
     def change_random_config(self) -> None:
         random_config = self.logic.get_random_config()
-        random_config_map = {
-            "column_length": random_config["column_length"],
-            "row_length": random_config["row_length"],
-            "int_min": random_config["int_min"],
-            "int_max": random_config["int_max"],
-            "float_min": random_config["float_min"],
-            "float_max": random_config["float_max"],
-            "float_round": random_config["float_round"],
-            "string_length": random_config["string_length"],
-            "string_type": random_config["string_type"]
-        }
         counter = 1
-        for key, value in random_config_map.items():
+        for key, value in asdict(random_config).items():
             if key in ("row_length", "int_max", "float_max"):
                 print(f"   {key.replace("_", " ")}: {value}")
             else:
                 print(f"{counter}. {key.replace("_", " ")}: {value}")
                 counter+=1
-        index = self._prompt_index("\nSelect which config to change: ", 1, (len(random_config) - 3))
+        index = self._prompt_index("\nSelect which config to change: ", 1, (len(asdict(random_config)) - 3))
         match index:
             case 1:
                 column_length, row_length = self._prompt_column_row_length("Enter column length: ",
                                                                            "Enter row length: ")
-                random_config["column_length"] = column_length
-                random_config["row_length"] = row_length
+                random_config.column_length = column_length
+                random_config.row_length = row_length
             case 2:
                 int_min, int_max = self._prompt_random_min_max("Enter min value for random int: ",
                                                                 "Enter max value for random int: ")
-                random_config["int_min"] = int_min
-                random_config["int_max"] = int_max
+                random_config.int_min = int_min
+                random_config.int_max = int_max
             case 3:
                 float_min, float_max = self._prompt_random_min_max("Enter min value for random float: ",
                                                                    "Enter max value random float: ")
-                random_config["float_min"] = float_min
-                random_config["float_max"] = float_max
+                random_config.float_min = float_min
+                random_config.float_max = float_max
             case 4:
                 float_round = self._prompt_round_value("Enter round value for random float: ")
-                random_config["float_round"] = float_round
+                random_config.float_round = float_round
             case 5:
                 string_length = self._prompt_value("Enter string length for random string: ")
-                random_config["string_length"] = string_length
+                random_config.string_length = string_length
             case 6:
                 string_type = self._prompt_string_type("Enter string type for random string: ")
-                random_config["string_type"] = string_type
+                random_config.string_type = string_type
         self.logic.change_random_config(random_config)
         
     @BaseCLI.cli_decorator
@@ -212,4 +203,4 @@ class GeneratorSettingCLI(BaseCLI):
         string_type = self._prompt_string_type("Enter string type for random string: ")
         random_config["string_type"] = string_type
         
-        self.logic.change_random_config(random_config)
+        self.logic.change_random_config(RandomConfig(**random_config))

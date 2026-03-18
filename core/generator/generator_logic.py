@@ -32,7 +32,7 @@ class GeneratorLogic:
         return Path(dataset_filepath)
         
     def get_column_length(self) -> int:
-        return self.setting.get_random_config()["column_length"]
+        return self.setting.get_random_config().column_length
         
     def _get_random_int(self, config: IntConfig) -> int | np.ndarray:
         return self.rng.get_random_int(config)
@@ -107,12 +107,12 @@ class GeneratorLogic:
         #random config data preparation
         random_config = self.setting.get_random_config()
         
-        column_length, row_length = random_config["column_length"], random_config["row_length"]
-        int_min, int_max = random_config["int_min"], random_config["int_max"]
-        float_min, float_max = random_config["float_min"], random_config["float_max"]
-        float_round = random_config["float_round"]
-        string_length = random_config["string_length"]
-        string_type = random_config["string_type"]
+        column_length, row_length = random_config.column_length, random_config.row_length
+        int_min, int_max = random_config.int_min, random_config.int_max
+        float_min, float_max = random_config.float_min, random_config.float_max
+        float_round = random_config.float_round
+        string_length = random_config.string_length
+        string_type = random_config.string_type
         
         #cli data validation
         random_types = self._validate_random_type(random_types=random_types)

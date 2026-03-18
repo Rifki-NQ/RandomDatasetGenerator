@@ -106,7 +106,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     #non interactive menu
-    if args.generate:
+    if args.generate == "generate":
         app.call_directly(class_name="GeneratorCLI", method_name="generate_random_dataset",
                           column_length=args.column_length, row_length=args.row_length)
     #interactive menu
