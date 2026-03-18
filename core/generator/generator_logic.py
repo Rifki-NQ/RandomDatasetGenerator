@@ -43,17 +43,15 @@ class GeneratorLogic:
     def _get_random_string(self, config: StringConfig) -> str | list[str]:
         return self.rng.get_random_string(config)
         
-    def _get_random_by_index(self, random_index: int, **kwargs) -> int | float | str | np.ndarray | list[str]:
+    def _get_random_by_index(self, random_index: int) -> int | float | str | np.ndarray | list[str]:
+        config = self.setting.get_random_config()
         #1 = int, 2 = float, 3 = string
         if random_index == 1:
-            config = IntConfig(**kwargs)
-            return self._get_random_int(config)
+            return self._get_random_int(config.int_config())
         elif random_index == 2:
-            config = FloatConfig(**kwargs)
-            return self._get_random_float(config)
+            return self._get_random_float(config.float_config())
         elif random_index == 3:
-            config = StringConfig(**kwargs)
-            return self._get_random_string(config)
+            return self._get_random_string(config.string_config())
         else:
             raise ValueError("Error: invalid random index provided!")
         
@@ -104,15 +102,7 @@ class GeneratorLogic:
         return end - start
         
     def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> Generator[int, None, float]:
-        #random config data preparation
-        random_config = self.setting.get_random_config()
-        
-        column_length, row_length = random_config.column_length, random_config.row_length
-        int_min, int_max = random_config.int_min, random_config.int_max
-        float_min, float_max = random_config.float_min, random_config.float_max
-        float_round = random_config.float_round
-        string_length = random_config.string_length
-        string_type = random_config.string_type
+        column_length = self.get_column_length()
         
         #cli data validation
         random_types = self._validate_random_type(random_types=random_types)
@@ -129,16 +119,7 @@ class GeneratorLogic:
         #dataset generation per column
         generated_dataset = {}
         for column in range(column_length):
-            match random_types[column]:
-                case 1:
-                    random_config = dict(size=row_length, int_min=int_min, int_max=int_max)
-                case 2:
-                    random_config = dict(size=row_length, float_min=float_min,
-                                         float_max=float_max, float_round=float_round)
-                case 3:
-                    random_config = dict(size=row_length, string_length=string_length, string_type=string_type)
-            #generate random values in bulk
-            random_values = self._get_random_by_index(random_index=random_types[column], **random_config)
+            random_values = self._get_random_by_index(random_index=random_types[column])
             generated_dataset[column_names[column]] = self._normalize_random_value(value=random_values)
             yield generation_update.send_update(column + 1)
         self.csv_file_handler.save(pd.DataFrame(generated_dataset))

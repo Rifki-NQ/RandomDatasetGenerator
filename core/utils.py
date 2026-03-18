@@ -5,11 +5,9 @@ import string
 from typing import Any, Literal
 from pathlib import Path
 from abc import ABC, abstractmethod
-from core.models.config_models import IntConfig, FloatConfig, StringConfig
+from core.models.config_models import IntConfig, FloatConfig, StringConfig, STRING_TYPES
 from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, FilepathUndefinedError,
                              FileNotFoundAppError, InvalidFileTypeError, EmptyDataError)
-
-strformats = Literal["uppercase", "lowercase", "mixed"]
 
 class Helper:
     @staticmethod
@@ -149,7 +147,7 @@ class Randomizer:
             value = float(value[0])
         return value
     
-    def _get_random_letters(self, string_type: strformats | None) -> str:
+    def _get_random_letters(self, string_type: STRING_TYPES | None) -> str:
         if string_type is None:
             string_type = "mixed"
         if string_type == "lowercase":

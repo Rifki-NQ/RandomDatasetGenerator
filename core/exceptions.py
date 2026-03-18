@@ -49,6 +49,21 @@ class InvalidConfigTypeError(ConfigDataError):
     """Raised when config data contains value type that is not expected"""
     pass
 
+class RowColumnLengthError(ConfigDataError):
+    """Raised when config data contains invalid value for column or row length"""
+    pass
+
+class InvalidMinMaxValueError(ConfigDataError):
+    """Raised when config data contains max_value that is not greater than min_value"""
+    pass
+
+class InvalidFloatRoundError(ConfigDataError):
+    """Raised when config data float_round value is not in the allowed range"""
+    pass
+
+class InvalidStringTypeError(ConfigDataError):
+    """Raised when config data string_type value is invalid"""
+
 class MenuError(AppError):
     """Raised when there is menu related error"""
     pass
