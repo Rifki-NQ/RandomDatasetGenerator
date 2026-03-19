@@ -46,6 +46,10 @@ class MissingConfigKeyError(ConfigDataError):
     """Raised when expected key in config data is missing"""
     pass
 
+class ExtraConfigKeyError(ConfigDataError):
+    """Raised when config data contains key that is not excpected"""
+    pass
+
 class InvalidConfigTypeError(ConfigDataError):
     """Raised when config data contains value type that is not expected"""
     pass
