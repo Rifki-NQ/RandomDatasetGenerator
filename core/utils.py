@@ -33,18 +33,6 @@ class DataIO(ABC):
     def __init__(self):
         self.file_path: Path | None = None
     
-    @abstractmethod
-    def read(self, **kwargs):
-        pass
-    
-    @abstractmethod
-    def save(self, data):
-        pass
-    
-    @abstractmethod
-    def register_filepath(self, file_path: Path):
-        pass
-    
     @staticmethod
     def create_dataio(file_type: Literal["csv", "yaml"]) -> DataIO:
         valid_file_types = {"csv", "yaml"}
@@ -54,6 +42,18 @@ class DataIO(ABC):
             return CSVFileHandler()
         elif file_type == "yaml":
             return YAMLFileHandler()
+    
+    @abstractmethod
+    def register_filepath(self, file_path: Path):
+        pass
+    
+    @abstractmethod
+    def read(self, **kwargs):
+        pass
+    
+    @abstractmethod
+    def save(self, data):
+        pass
         
     def _check_file_path(self) -> None:
         if self.file_path is None:
@@ -99,14 +99,6 @@ class YAMLFileHandler(DataIO):
             raise InvalidFileTypeError(f"Error: invalid file type provided! ({file_path}) | expected (yaml), got ({filetype})")
         self.file_path = file_path
         return file_path.exists()
-
-    def _format_yaml(self, data) -> str:
-        formatted_yaml = yaml.dump(
-            data,
-            sort_keys=False,
-            default_flow_style=False
-        )
-        return formatted_yaml
     
     def read(self, **kwargs) -> dict[str, Any]:
         self._check_file_path()
@@ -128,6 +120,14 @@ class YAMLFileHandler(DataIO):
         with open(self.file_path, "w+") as file:
             yaml.safe_dump(data, file, sort_keys=False)
             
+    def _format_yaml(self, data) -> str:
+        formatted_yaml = yaml.dump(
+            data,
+            sort_keys=False,
+            default_flow_style=False
+        )
+        return formatted_yaml
+            
 class Randomizer:
     def __init__(self, seed: int | None = None):
         self.SEED = seed
@@ -146,16 +146,6 @@ class Randomizer:
         if config.size == 1:
             value = float(value[0])
         return value
-    
-    def _get_random_letters(self, string_type: STRING_TYPES | None) -> str:
-        if string_type is None:
-            string_type = "mixed"
-        if string_type == "lowercase":
-            return string.ascii_lowercase
-        elif string_type == "uppercase":
-            return string.ascii_uppercase
-        elif string_type == "mixed":
-            return string.ascii_letters
     
     def get_random_string(self, config: StringConfig) -> list[str] | str:
         letters = np.array(list(self._get_random_letters(config.string_type)))
@@ -179,3 +169,13 @@ class Randomizer:
         if size == 1:
             value = value[0]
         return value
+    
+    def _get_random_letters(self, string_type: STRING_TYPES | None) -> str:
+        if string_type is None:
+            string_type = "mixed"
+        if string_type == "lowercase":
+            return string.ascii_lowercase
+        elif string_type == "uppercase":
+            return string.ascii_uppercase
+        elif string_type == "mixed":
+            return string.ascii_letters

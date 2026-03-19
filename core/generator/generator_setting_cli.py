@@ -4,9 +4,9 @@ from core.utils import Helper
 from core.models.config_models import RandomConfig
 from core.exceptions import InputError
 
-class BaseCLI:
+class _BaseCLI:
     @staticmethod
-    def cli_decorator(func):
+    def _cli_decorator(func):
         def wrapper(self):
             if self.use_decorator:
                 print("----------")
@@ -111,7 +111,7 @@ class BaseCLI:
                 continue
             return string_type[choosen_type - 1]
             
-class GeneratorSettingCLI(BaseCLI):
+class GeneratorSettingCLI(_BaseCLI):
     RANDOM_CONFIG = ["column_row_length", "int_min_max", "float_min_max",
                      "float_round", "string_length", "string_type"]
     
@@ -119,25 +119,25 @@ class GeneratorSettingCLI(BaseCLI):
         self.logic = logic
         self.use_decorator = use_decorator
     
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def show_all_filepath(self) -> None:
         print("Current config filepath: data/config.yaml")
         print(f"Current dataset filepath: {self.logic.get_dataset_filepath()}")
     
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def update_dataset_filepath(self) -> None:
         new_filepath = self._prompt_filepath("Enter new filepath for generated dataset: ")
         self.logic.change_dataset_filepath(new_filepath)
         print("Dataset filepath updated successfully!")
         
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def show_random_config(self) -> None:
         print("Randomizer configuration: ")
         random_config_data = self.logic.get_random_config()
         for key, value in asdict(random_config_data).items():
             print(f"  {key.replace("_", " ")}: {value}")
         
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def change_random_config(self) -> None:
         random_config = self.logic.get_random_config()
         counter = 1
@@ -175,7 +175,7 @@ class GeneratorSettingCLI(BaseCLI):
                 random_config.string_type = string_type
         self.logic.change_random_config(random_config)
         
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def update_random_configs(self) -> None:
         random_config = {}
         #input column and row length

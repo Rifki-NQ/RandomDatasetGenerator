@@ -1,9 +1,9 @@
 from core.exceptions import (InvalidFileTypeError, FilepathUndefinedError, ConfigDataError,
                              FileNotEmptyError)
 
-class BaseCLI:
+class _BaseCLI:
     @staticmethod
-    def cli_decorator(func):
+    def _cli_decorator(func):
         def wrapper(self, **kwargs):
             print("----------")
 
@@ -108,12 +108,12 @@ class BaseCLI:
             columns_type.append(type_index)
         return columns_type
                 
-class GeneratorCLI(BaseCLI):
+class GeneratorCLI(_BaseCLI):
     def __init__(self, generator_logic, setting_cli):
         self.logic = generator_logic
         self.setting = setting_cli
     
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def generate_random_dataset(self, **kwargs) -> None:
         if not kwargs:
             column_length, row_length = self._prompt_row_column_length()
@@ -129,7 +129,7 @@ class GeneratorCLI(BaseCLI):
             runtime = e.value
         print(f"Dataset generated successfully in {runtime:.2f}s!")
         
-    @BaseCLI.cli_decorator
+    @_BaseCLI._cli_decorator
     def generate_custom_random_dataset(self) -> None:
         self.setting.show_random_config()
         print("----------")

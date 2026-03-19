@@ -20,6 +20,53 @@ class GeneratorLogic:
         if self._file_not_empty(dataset_filepath=dataset_filepath):
             raise FileNotEmptyError()
     
+    def get_column_length(self) -> int:
+        return self.setting.get_random_config().column_length
+    
+    def generate_dataset(self, column_length: int, row_length: int) -> Generator[int, None, float]:
+        #initiate performance and update tracker
+        generation_update = GenerationProgress(total_value=column_length)
+        start = time.perf_counter()
+        
+        column_name = self.rng.get_random_string(StringConfig(size=column_length, string_length=5, string_type="uppercase"))
+        
+        #dataset generation per column
+        generated_dataset = {}
+        for column in range(column_length):
+            value = self.rng.get_random_mixed(row_length)
+            generated_dataset[column_name[column]] = self._normalize_random_value(value=value)
+            yield generation_update.send_update(column + 1)
+        self.csv_file_handler.save(pd.DataFrame(generated_dataset))
+        
+        end = time.perf_counter()
+        return end - start
+        
+    def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> Generator[int, None, float]:
+        column_length = self.get_column_length()
+        
+        #cli data validation
+        random_types = self._validate_random_type(random_types=random_types)
+        column_names = self._validate_column_name(column_names=column_names)
+        
+        #check if column names and random types length match
+        if len(column_names) != len(random_types):
+            raise ValueError("Error: column names and random types length mismatch!")
+        
+        #initiate performance and update tracker
+        generation_update = GenerationProgress(total_value=column_length)
+        start = time.perf_counter()
+        
+        #dataset generation per column
+        generated_dataset = {}
+        for column in range(column_length):
+            random_values = self._get_random_by_index(random_index=random_types[column])
+            generated_dataset[column_names[column]] = self._normalize_random_value(value=random_values)
+            yield generation_update.send_update(column + 1)
+        self.csv_file_handler.save(pd.DataFrame(generated_dataset))
+        
+        end = time.perf_counter()
+        return end - start
+    
     def _file_not_empty(self, dataset_filepath: Path) -> bool:
         if not dataset_filepath.exists():
             return False
@@ -30,9 +77,6 @@ class GeneratorLogic:
         dataset_filepath = self.setting.get_dataset_filepath()
         self.csv_file_handler.register_filepath(Path(dataset_filepath))
         return Path(dataset_filepath)
-        
-    def get_column_length(self) -> int:
-        return self.setting.get_random_config().column_length
         
     def _get_random_int(self, config: IntConfig) -> int | np.ndarray:
         return self.rng.get_random_int(config)
@@ -81,48 +125,3 @@ class GeneratorLogic:
         if isinstance(value, (int, float, str)):
             return [value]
         return value
-        
-    def generate_dataset(self, column_length: int, row_length: int) -> Generator[int, None, float]:
-        #initiate performance and update tracker
-        generation_update = GenerationProgress(total_value=column_length)
-        start = time.perf_counter()
-        
-        generated_dataset = {}
-        column_name = self.rng.get_random_string(StringConfig(size=column_length,
-                                                              string_length=5,
-                                                              string_type="uppercase"))
-        #dataset generation per column
-        for column in range(column_length):
-            value = self.rng.get_random_mixed(row_length)
-            generated_dataset[column_name[column]] = self._normalize_random_value(value=value)
-            yield generation_update.send_update(column + 1)
-        self.csv_file_handler.save(pd.DataFrame(generated_dataset))
-        
-        end = time.perf_counter()
-        return end - start
-        
-    def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> Generator[int, None, float]:
-        column_length = self.get_column_length()
-        
-        #cli data validation
-        random_types = self._validate_random_type(random_types=random_types)
-        column_names = self._validate_column_name(column_names=column_names)
-        
-        #check if column names and random types length match
-        if len(column_names) != len(random_types):
-            raise ValueError("Error: column names and random types length mismatch!")
-        
-        #initiate performance and update tracker
-        generation_update = GenerationProgress(total_value=column_length)
-        start = time.perf_counter()
-        
-        #dataset generation per column
-        generated_dataset = {}
-        for column in range(column_length):
-            random_values = self._get_random_by_index(random_index=random_types[column])
-            generated_dataset[column_names[column]] = self._normalize_random_value(value=random_values)
-            yield generation_update.send_update(column + 1)
-        self.csv_file_handler.save(pd.DataFrame(generated_dataset))
-        
-        end = time.perf_counter()
-        return end - start

@@ -10,6 +10,26 @@ class GeneratorSettingLogic:
     
     def __init__(self, yaml_file_handler):
         self.yaml_file_handler = yaml_file_handler
+    
+    def get_random_config(self) -> RandomConfig:
+        return self._read_config().random_config()
+    
+    def get_dataset_filepath(self) -> str:
+        config_data = self._read_config()
+        dataset_filepath = config_data.dataset_filepath
+        if dataset_filepath is None:
+            raise FilepathUndefinedError(f"Error: {self.DATASET_FILEPATH_KEY} is undefined in the config_data!")
+        return dataset_filepath
+    
+    def change_random_config(self, new_config: RandomConfig) -> None:
+        config_data = self._read_config()
+        updated_config = replace(config_data, **asdict(new_config))
+        self.yaml_file_handler.save(asdict(updated_config))
+    
+    def change_dataset_filepath(self, new_filepath: str) -> None:
+        config_data = self.read_config()
+        config_data[self.DATASET_FILEPATH_KEY] = new_filepath
+        self.yaml_file_handler.save(config_data)
         
     def _read_config(self) -> GeneratorConfig:
         if not self.yaml_file_handler.register_filepath(self.CONFIG_FILEPATH):
@@ -26,23 +46,3 @@ class GeneratorSettingLogic:
             raise MissingConfigKeyError(f"Error: {missing_keys} does not exist in the config data!")
         if extra_keys:
             raise ExtraConfigKeyError(f"Error: unexpected key {extra_keys} in config data!")
-    
-    def get_dataset_filepath(self) -> str:
-        config_data = self._read_config()
-        dataset_filepath = config_data.dataset_filepath
-        if dataset_filepath is None:
-            raise FilepathUndefinedError(f"Error: {self.DATASET_FILEPATH_KEY} is undefined in the config_data!")
-        return dataset_filepath
-    
-    def get_random_config(self) -> RandomConfig:
-        return self._read_config().random_config()
-    
-    def change_dataset_filepath(self, new_filepath: str) -> None:
-        config_data = self.read_config()
-        config_data[self.DATASET_FILEPATH_KEY] = new_filepath
-        self.yaml_file_handler.save(config_data)
-        
-    def change_random_config(self, new_config: RandomConfig) -> None:
-        config_data = self._read_config()
-        updated_config = replace(config_data, **asdict(new_config))
-        self.yaml_file_handler.save(asdict(updated_config))
