@@ -1,8 +1,9 @@
+from typing import get_args
 from dataclasses import asdict
-from pathlib import Path
 from core.utils import Helper
-from core.models.config_models import RandomConfig
-from core.exceptions import InputError
+from core.models.config_models import GeneratorConfig, RandomConfig, STRING_TYPES
+from core.exceptions import (InputError, InvalidFilepathError, RowColumnLengthError,
+                             InvalidMinMaxValueError, InvalidFloatRoundError, InvalidStringTypeError)
 
 class _BaseCLI:
     @staticmethod
@@ -34,82 +35,54 @@ class _BaseCLI:
                 
     def _prompt_filepath(self, message: str) -> str:
         while True:
-            new_filepath = input(message).strip().replace(" ", "_")
-            new_filepath_folder = str(Path(new_filepath).parent)
-            if new_filepath_folder != "data":
-                print("dataset file must be in designated folder (example: data/file.csv)")
-                continue
-            if not new_filepath.lower().endswith(".csv"):
-                print("dataset file must be a csv file (example: data/file.csv)")
-                continue
-            return new_filepath
+            try:
+                new_filepath = input(message)
+                GeneratorConfig.validate_filepath(new_filepath)
+                return new_filepath
+            except InvalidFilepathError as e:
+                print(e)
     
     def _prompt_column_row_length(self, column_message: str, row_message: str) -> tuple[int, int]:
         while True:
-            column_length = self._prompt_value(column_message)
-            if column_length > 0:
-                break
-            print("Column length cannot be less than 1!")
-        while True:
-            row_length = self._prompt_value(row_message)
-            if row_length > 0:
-                break
-            print("Row length cannot be less than 1!")
-        return column_length, row_length
+            try:
+                column_length = self._prompt_value(column_message)
+                row_length = self._prompt_value(row_message)
+                GeneratorConfig.validate_row_column_length(column_length, row_length)
+                return column_length, row_length
+            except RowColumnLengthError as e:
+                print(e)
         
-    def _prompt_random_min_max(self, min_message: str, max_message: str) -> tuple[int, int]:
+    def _prompt_random_min_max(self, value_type: str, min_message: str, max_message: str) -> tuple[int, int]:
         while True:
-            min_value = input(min_message)
-            if min_value.isdigit():
-                min_value = int(min_value)
-            else:
-                print("Value must be in digit!")
-                continue
-            if min_value < 0:
-                print("Min value cannot be less than zero!")
-                continue
-            break
-        while True:
-            max_value = input(max_message)
-            if max_value.isdigit():
-                max_value = int(max_value)
-            else:
-                print("Value must be in digit!")
-                continue
-            if max_value <= min_value:
-                print("Max value must be greater than min value!")
-                continue
-            break
-        return min_value, max_value
+            try:
+                min_value = self._prompt_value(min_message)
+                max_value = self._prompt_value(max_message)
+                GeneratorConfig.validate_min_max(value_type, min_value, max_value)
+                return min_value, max_value
+            except InvalidMinMaxValueError as e:
+                print(e)
     
     def _prompt_round_value(self, message: str) -> int:
         while True:
-            round_value = input(message)
-            if round_value.isdigit():
-                round_value = int(round_value)
-            else:
-                print("Value must be in digit!")
-                continue
-            if not 1 <= round_value <= 8:
-                print("Allowed round value range is 1 to 8!")
-                continue
-            return round_value
+            try:
+                round_value = self._prompt_value(message)
+                GeneratorConfig.validate_float_round(round_value)
+                return round_value
+            except InvalidFloatRoundError as e:
+                print(e)
 
     def  _prompt_string_type(self, message: str) -> str:
-        string_type = ["uppercase", "lowercase", "mixed"]
-        for i, s_type in enumerate(string_type, 1):
-            print(f"{i}. {s_type}")
+        string_types = get_args(STRING_TYPES)
+        for index, string_type in enumerate(string_types, 1):
+            print(f"{index}. {string_type}")
         while True:
-            choosen_type = input(message)
-            if choosen_type.isdigit():
-                choosen_type = int(choosen_type)
-            else:
-                print("Value must be in digit!")
-                continue
-            if not 1 <= choosen_type <= 3:
-                print("Invalid index choice! (1 to 3)")
-                continue
-            return string_type[choosen_type - 1]
+            try:
+                index = self._prompt_index(message=message, min_value=1, max_value=3)
+                chosen_type = string_types[index-1]
+                GeneratorConfig.validate_string_type(chosen_type)
+                return chosen_type
+            except InvalidStringTypeError as e:
+                print(e)
             
 class GeneratorSettingCLI(_BaseCLI):
     RANDOM_CONFIG = ["column_row_length", "int_min_max", "float_min_max",
@@ -155,12 +128,12 @@ class GeneratorSettingCLI(_BaseCLI):
                 random_config.column_length = column_length
                 random_config.row_length = row_length
             case 2:
-                int_min, int_max = self._prompt_random_min_max("Enter min value for random int: ",
+                int_min, int_max = self._prompt_random_min_max("int" ,"Enter min value for random int: ",
                                                                 "Enter max value for random int: ")
                 random_config.int_min = int_min
                 random_config.int_max = int_max
             case 3:
-                float_min, float_max = self._prompt_random_min_max("Enter min value for random float: ",
+                float_min, float_max = self._prompt_random_min_max("float", "Enter min value for random float: ",
                                                                    "Enter max value random float: ")
                 random_config.float_min = float_min
                 random_config.float_max = float_max
@@ -184,12 +157,12 @@ class GeneratorSettingCLI(_BaseCLI):
         random_config["column_length"] = column_length
         random_config["row_length"] = row_length
         #input int min and max
-        int_min, int_max = self._prompt_random_min_max("Enter min value for random int: ",
+        int_min, int_max = self._prompt_random_min_max("int", "Enter min value for random int: ",
                                                        "Enter max value for random int: ")
         random_config["int_min"] = int_min
         random_config["int_max"] = int_max
         #input float min and max
-        float_min, float_max = self._prompt_random_min_max("Enter min value for random float: ",
+        float_min, float_max = self._prompt_random_min_max("float", "Enter min value for random float: ",
                                                            "Enter max value random float: ")
         random_config["float_min"] = float_min
         random_config["float_max"] = float_max

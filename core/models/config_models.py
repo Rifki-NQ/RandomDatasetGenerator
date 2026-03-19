@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Literal, get_args
-from core.exceptions import (InvalidConfigTypeError, RowColumnLengthError,
-                             InvalidMinMaxValueError, InvalidFloatRoundError,
-                             InvalidStringTypeError)
+from pathlib import Path
+from core.exceptions import (InvalidConfigTypeError, InvalidFilepathError, RowColumnLengthError,
+                             InvalidMinMaxValueError, InvalidFloatRoundError, InvalidStringTypeError)
 
 STRING_TYPES = Literal["uppercase", "lowercase", "mixed"]
 
@@ -73,6 +73,15 @@ class GeneratorConfig:
     string_length: int
     string_type: str
     
+    def __post_init__(self) -> None:
+        self._validate_type()
+        GeneratorConfig.validate_filepath(self.dataset_filepath)
+        GeneratorConfig.validate_row_column_length(self.column_length, self.row_length)
+        GeneratorConfig.validate_min_max("int", self.int_min, self.int_max)
+        GeneratorConfig.validate_min_max("float", self.float_min, self.float_max)
+        GeneratorConfig.validate_float_round(self.float_round)
+        GeneratorConfig.validate_string_type(self.string_type)
+    
     def random_config(self) -> RandomConfig:
         return RandomConfig(
             column_length=self.column_length,
@@ -85,13 +94,6 @@ class GeneratorConfig:
             string_length=self.string_length,
             string_type=self.string_type
         )
-    
-    def __post_init__(self) -> None:
-        self._validate_type()
-        self._validate_row_column_length()
-        self._validate_min_max()
-        self._validate_float_round()
-        self._validate_string_type()
     
     def _validate_type(self) -> None:
         expected = {
@@ -111,25 +113,35 @@ class GeneratorConfig:
             if not isinstance(value, expected_type):
                 raise InvalidConfigTypeError(f"Error: expected ({expected_type.__name__}) for {key}, "
                                              f"got ({type(value).__name__}) instead")
+    
+    @staticmethod
+    def validate_filepath(dataset_filepath: str) -> None:
+        dataset_filepath = dataset_filepath.strip().replace(" ", "_")
+        filepath_folder = str(Path(dataset_filepath).parent)
+        if filepath_folder != "data":
+            raise InvalidFilepathError("Error: dataset file must be in the designated folder (example: data/file.csv)")
+        if not dataset_filepath.lower().endswith(".csv"):
+            raise InvalidFilepathError("dataset file must be a csv file (example: data/file.csv)")
 
-    def _validate_row_column_length(self) -> None:
-        if self.column_length < 1:
-            raise RowColumnLengthError("Error: column_length cannot be less than 1!")
-        if self.row_length < 1:
-            raise RowColumnLengthError("Error: row_length cannot be less than 1!")
+    @staticmethod
+    def validate_row_column_length(column_length: int, row_length: int) -> None:
+        if column_length < 1:
+            raise RowColumnLengthError("Error: (column length) cannot be less than 1!")
+        if row_length < 1:
+            raise RowColumnLengthError("Error: (row length) cannot be less than 1!")
         
-    def _validate_min_max(self) -> None:
-        if self.int_min >= self.int_max:
-            raise InvalidMinMaxValueError(f"Error: int_max value ({self.int_max}) "
-                                          f"has to be higher than int_min value ({self.int_min})!")
-        if self.float_min >= self.float_max:
-            raise InvalidMinMaxValueError(f"Error: float_max value ({self.float_max}) "
-                                          f"has to be higher than float_min value ({self.float_min})!")
+    @staticmethod
+    def validate_min_max(value_type: str, min_value: int, max_value: int) -> None:
+        if min_value >= max_value:
+            raise InvalidMinMaxValueError(f"Error: {value_type} max value ({max_value}) "
+                                          f"has to be higher than {value_type} max value ({min_value})!")
     
-    def _validate_float_round(self) -> None:
-        if not 1 <= self.float_round <= 8:
-            raise InvalidFloatRoundError(f"Error: float_round ({self.float_round}) is out of allowed range (1 to 8)!")
+    @staticmethod
+    def validate_float_round(float_round: int) -> None:
+        if not 1 <= float_round <= 8:
+            raise InvalidFloatRoundError(f"Error: float round ({float_round}) is out of allowed range (1 to 8)!")
     
-    def _validate_string_type(self) -> None:
-        if self.string_type not in get_args(STRING_TYPES):
-            raise InvalidStringTypeError(f"Error: invalid string_type ({self.string_type}), expected {get_args(STRING_TYPES)}")
+    @staticmethod
+    def validate_string_type(string_type: str) -> None:
+        if string_type not in get_args(STRING_TYPES):
+            raise InvalidStringTypeError(f"Error: invalid string type ({string_type}), expected {get_args(STRING_TYPES)}")
