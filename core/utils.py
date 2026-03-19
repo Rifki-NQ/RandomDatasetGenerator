@@ -6,7 +6,7 @@ from typing import Any, Literal
 from pathlib import Path
 from abc import ABC, abstractmethod
 from core.models.config_models import IntConfig, FloatConfig, StringConfig, STRING_TYPES
-from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, FilepathUndefinedError,
+from core.exceptions import (ValueNotDigitError, OutOfBoundValueError, FilepathNotRegisteredError,
                              FileNotFoundAppError, InvalidFileTypeError, EmptyDataError)
 
 class Helper:
@@ -57,7 +57,7 @@ class DataIO(ABC):
         
     def _check_file_path(self) -> None:
         if self.file_path is None:
-            raise FilepathUndefinedError("Error: filepath has not registered yet!")
+            raise FilepathNotRegisteredError("Error: filepath has not registered yet!")
     
 class CSVFileHandler(DataIO):
     def __init__(self):

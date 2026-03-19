@@ -1,4 +1,4 @@
-from core.exceptions import (InvalidFileTypeError, FilepathUndefinedError, ConfigDataError,
+from core.exceptions import (InvalidFileTypeError, FilepathNotRegisteredError, ConfigDataError,
                              FileNotEmptyError)
 
 class _BaseCLI:
@@ -20,7 +20,7 @@ class _BaseCLI:
                 print(e)
                 should_run = False
 
-            except FilepathUndefinedError as e:
+            except FilepathNotRegisteredError as e:
                 print(e)
                 should_run = False
 

@@ -1,8 +1,7 @@
 from pathlib import Path
 from dataclasses import replace, asdict, fields
 from core.models.config_models import GeneratorConfig, RandomConfig
-from core.exceptions import (FileNotFoundAppError, FilepathUndefinedError, MissingConfigKeyError,
-                             ExtraConfigKeyError)
+from core.exceptions import (FileNotFoundAppError, MissingConfigKeyError, ExtraConfigKeyError)
 
 class GeneratorSettingLogic:
     DATASET_FILEPATH_KEY = "dataset_filepath"
@@ -16,10 +15,7 @@ class GeneratorSettingLogic:
     
     def get_dataset_filepath(self) -> str:
         config_data = self._read_config()
-        dataset_filepath = config_data.dataset_filepath
-        if dataset_filepath is None:
-            raise FilepathUndefinedError(f"Error: {self.DATASET_FILEPATH_KEY} is undefined in the config_data!")
-        return dataset_filepath
+        return config_data.dataset_filepath
     
     def change_random_config(self, new_config: RandomConfig) -> None:
         config_data = self._read_config()

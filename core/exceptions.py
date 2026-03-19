@@ -26,8 +26,8 @@ class FileNotFoundAppError(FileError):
     """Raised when the file is not found"""
     pass
 
-class FilepathUndefinedError(FileError):
-    """Raised when the file path has not defined"""
+class FilepathNotRegisteredError(FileError):
+    """Raised when the filepath has not registered yet"""
     pass
 
 class EmptyDataError(FileError):
@@ -52,6 +52,10 @@ class ExtraConfigKeyError(ConfigDataError):
 
 class InvalidConfigTypeError(ConfigDataError):
     """Raised when config data contains value type that is not expected"""
+    pass
+
+class InvalidFilepathError(ConfigDataError):
+    """Raised when config data contains invalid filepath"""
     pass
 
 class RowColumnLengthError(ConfigDataError):
