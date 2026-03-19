@@ -80,10 +80,18 @@ class _BaseCLI:
             if skip_custom_name:
                 new_name = None
             else:
-                new_name = input(f"Enter name for column no. {i + 1} (s to skip): ")
-                if new_name.strip().lower() == "s":
-                    new_name = None
-                    skip_custom_name = True
+                while True:
+                    new_name = input(f"Enter name for column no. {i + 1} (s to skip): ").strip()
+                    if new_name.lower() == "s":
+                        new_name = None
+                        skip_custom_name = True
+                    elif not new_name:
+                        print("Column name cannot be empty")
+                        continue
+                    elif new_name.lower() in (col.lower() for col in columns_name):
+                        print(f"Column name '{new_name}' already exists. Please choose a different name")
+                        continue
+                    break
             columns_name.append(new_name)
         return columns_name
     
