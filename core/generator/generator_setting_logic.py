@@ -24,12 +24,12 @@ class GeneratorSettingLogic:
     def change_random_config(self, new_config: RandomConfig) -> None:
         config_data = self._read_config()
         updated_config = replace(config_data, **asdict(new_config))
-        self.yaml_file_handler.save(asdict(updated_config))
+        self._save_config(updated_config)
     
     def change_dataset_filepath(self, new_filepath: str) -> None:
-        config_data = self.read_config()
-        config_data[self.DATASET_FILEPATH_KEY] = new_filepath
-        self.yaml_file_handler.save(config_data)
+        config_data = self._read_config()
+        config_data.dataset_filepath = new_filepath
+        self._save_config(config_data)
         
     def _read_config(self) -> GeneratorConfig:
         if not self.yaml_file_handler.register_filepath(self.CONFIG_FILEPATH):
@@ -46,3 +46,6 @@ class GeneratorSettingLogic:
             raise MissingConfigKeyError(f"Error: {missing_keys} does not exist in the config data!")
         if extra_keys:
             raise ExtraConfigKeyError(f"Error: unexpected key {extra_keys} in config data!")
+        
+    def _save_config(self, config_data: GeneratorConfig) -> None:
+        self.yaml_file_handler.save(asdict(config_data))
