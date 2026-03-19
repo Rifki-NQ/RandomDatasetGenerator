@@ -36,6 +36,7 @@ class EmptyDataError(FileError):
 
 class FileNotEmptyError(FileError):
     """Raised when a file is expected to be empty but contains data"""
+    pass
 
 class ConfigDataError(FileError):
     """Raised when there is config related error"""

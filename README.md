@@ -12,7 +12,6 @@ A CLI-based tool for generating random datasets as CSV files, with configurable 
 - [Configuration](#configuration)
 - [Architecture](#architecture)
 - [Running Tests](#running-tests)
-- [Known Issues & TODO](#known-issues--todo)
 
 ---
 

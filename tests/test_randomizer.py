@@ -101,6 +101,12 @@ def test_string_length(randomizer, configs):
         
 def test_float_round(randomizer, configs):
     random_float = randomizer.get("random_float")(configs.get("float_config"))
+    """
+    Making sure decimal_point length is no greater than float_round value
+    
+    But decimal_point less than float_round is allowed with the assumption of
+    python round() method delete the trailing zeros
+    """
     for value in random_float:
         decimal_point = str(value).split(".")[1]
-        assert len(decimal_point) == float_round
+        assert len(decimal_point) <= float_round
