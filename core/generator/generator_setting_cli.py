@@ -3,7 +3,8 @@ from dataclasses import asdict
 from core.utils import Helper
 from core.models.config_models import GeneratorConfig, RandomConfig, STRING_TYPES
 from core.exceptions import (InputError, InvalidFilepathError, RowColumnLengthError,
-                             InvalidMinMaxValueError, InvalidFloatRoundError, InvalidStringTypeError)
+                             InvalidMinMaxValueError, InvalidFloatRoundError, InvalidStringTypeError,
+                             InvalidConfigTypeError)
 
 class _BaseCLI:
     @staticmethod
@@ -37,19 +38,22 @@ class _BaseCLI:
         while True:
             try:
                 new_filepath = input(message)
+                GeneratorConfig.validate_type(dataset_filepath=new_filepath)
                 GeneratorConfig.validate_filepath(new_filepath)
                 return new_filepath
-            except InvalidFilepathError as e:
+            except (InvalidConfigTypeError, InvalidFilepathError) as e:
                 print(e)
     
     def _prompt_column_row_length(self, column_message: str, row_message: str) -> tuple[int, int]:
         while True:
             try:
-                column_length = self._prompt_value(column_message)
-                row_length = self._prompt_value(row_message)
+                column_length = input(column_message)
+                row_length = input(row_message)
+                GeneratorConfig.validate_type(column_length=column_length, row_length=row_length)
                 GeneratorConfig.validate_row_column_length(column_length, row_length)
                 return column_length, row_length
-            except RowColumnLengthError as e:
+            #fix when error invalid type = row_length, printed invalid type = column_length
+            except (InvalidConfigTypeError,RowColumnLengthError) as e:
                 print(e)
         
     def _prompt_random_min_max(self, value_type: str, min_message: str, max_message: str) -> tuple[int, int]:

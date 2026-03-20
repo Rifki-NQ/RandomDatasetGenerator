@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Literal, get_args
 from pathlib import Path
 from core.exceptions import (InvalidConfigTypeError, InvalidFilepathError, RowColumnLengthError,
@@ -74,7 +74,7 @@ class GeneratorConfig:
     string_type: str
     
     def __post_init__(self) -> None:
-        self._validate_type()
+        GeneratorConfig.validate_type(**{f.name: getattr(self, f.name) for f in fields(self)})
         GeneratorConfig.validate_filepath(self.dataset_filepath)
         GeneratorConfig.validate_row_column_length(self.column_length, self.row_length)
         GeneratorConfig.validate_min_max("int", self.int_min, self.int_max)
@@ -95,24 +95,26 @@ class GeneratorConfig:
             string_type=self.string_type
         )
     
-    def _validate_type(self) -> None:
+    @staticmethod
+    def validate_type(**config) -> None:
         expected = {
             "dataset_filepath": str,
             "column_length": int,
             "row_length": int,
             "int_min": int,
             "int_max": int,
-            "float_min": int,
-            "float_max": int,
+            "float_min": (int, float),
+            "float_max": (int, float),
             "float_round": int,
             "string_length": int,
             "string_type": str
         }
-        for key, expected_type in expected.items():
-            value = getattr(self, key)
-            if not isinstance(value, expected_type):
-                raise InvalidConfigTypeError(f"Error: expected ({expected_type.__name__}) for {key}, "
-                                             f"got ({type(value).__name__}) instead")
+        for config_key, config_value in config.items():
+            expected_type = expected[config_key]
+            if not isinstance(config_value, expected_type):
+                expected_type = tuple(v.__name__ for v in expected_type) if isinstance(expected_type, tuple) else f"({expected_type.__name__})"
+                raise InvalidConfigTypeError(f"Error: expected {expected_type} for {config_key}, "
+                                             f"got ({type(config_value).__name__}) instead")
     
     @staticmethod
     def validate_filepath(dataset_filepath: str) -> None:
