@@ -1,5 +1,6 @@
 from typing import get_args
 from dataclasses import asdict
+from typing import Literal
 from core.utils import Helper
 from core.models.config_models import GeneratorConfig, RandomConfig, STRING_TYPES
 from core.exceptions import (InputError, InvalidFilepathError, RowColumnLengthError,
@@ -26,14 +27,17 @@ class _BaseCLI:
             except InputError as e:
                 print(e)
                 
-    def _prompt_value(self, input_message: str, error_message: str | None = "Value must be in digit!") -> int:
+    def _prompt_value(self, value_type: Literal["int", "numbers"], input_message: str) -> int | float:
+        converters = {"int": (int,), "numbers": (int, float)}
         while True:
             value = input(input_message)
-            if value.isdigit():
-                return int(value)
-            else:
-                print(error_message)
-                
+            for convert in converters[value_type]:
+                try:
+                    return convert(value)
+                except ValueError:
+                    pass 
+            print(f"Error: expected value type: {converters[value_type]}")
+                            
     def _prompt_filepath(self, message: str) -> str:
         while True:
             try:
