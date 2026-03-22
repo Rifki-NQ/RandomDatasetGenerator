@@ -119,7 +119,6 @@ class GeneratorConfig:
     
     @staticmethod
     def validate_filepath(dataset_filepath: str) -> None:
-        dataset_filepath = dataset_filepath.strip().replace(" ", "_")
         filepath_folder = str(Path(dataset_filepath).parent)
         if filepath_folder != "data":
             raise InvalidFilepathError("Error: dataset file must be in the designated folder (example: data/file.csv)")

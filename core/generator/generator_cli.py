@@ -1,130 +1,19 @@
+from core.generator.base_cli import BaseCLI
 from core.exceptions import (InvalidFileTypeError, FilepathNotRegisteredError, ConfigDataError,
                              FileNotEmptyError)
-
-class _BaseCLI:
-    @staticmethod
-    def _cli_decorator(func):
-        def wrapper(self, **kwargs):
-            print("----------")
-
-            try:
-                #initiate filepath registration then validate it
-                self.logic.initiate_filepath_registration()
-                should_run = True
-
-            except FileNotEmptyError:
-                print("File destination already has data inside it, overwrite?")
-                should_run = self._prompt_option()
-
-            except InvalidFileTypeError as e:
-                print(e)
-                should_run = False
-
-            except FilepathNotRegisteredError as e:
-                print(e)
-                should_run = False
-
-            if should_run:
-                func(self, **kwargs)
-            print("----------")
-        return wrapper
-    
-    def _prompt_index(self, message: str, min_value: int, max_value: int, skip_option: bool = False) -> int | str:
-        while True:
-            index = input(message)
-            if index.isdigit():
-                index = int(index)
-                if min_value <= index <= max_value:
-                    return int(index)
-                print(f"Value must be in range of {min_value} to {max_value}")
-            elif index.strip().lower() == "s" and skip_option:
-                return index
-            else:
-                print("Value must be in digit!")
                 
-    def _prompt_value(self, input_message: str, error_message: str | None = "Value must be in digit!") -> int:
-        while True:
-            value = input(input_message)
-            if value.isdigit():
-                return int(value)
-            else:
-                print(error_message)
-                
-    def _prompt_option(self) -> bool:
-        while True:
-            option = input("y/n: ")
-            if option.lower() == "y":
-                return True
-            elif option.lower() == "n":
-                return False
-            print("Invalid option inputted! (y = yes, n = no)")
-            
-    def _prompt_row_column_length(self) -> tuple[int, int]:
-        while True:
-            column_length = self._prompt_value("Enter column length: ", "Column length must be in digit!")
-            if column_length > 0:
-                break
-            print("Column length cannot be less than 1!")
-        while True:
-            row_length = self._prompt_value("Enter row length: ", "Row length must be in digit!")
-            if row_length > 0:
-                break
-            print("Row length cannot be less than 1!")
-        return column_length, row_length
-    
-    def _prompt_column_name(self, column_length: int) -> list[str | None]:
-        print("Enter s to skip custom name for the rest of the columns left")
-        skip_custom_name = False
-        columns_name = []
-        for i in range(column_length):
-            if skip_custom_name:
-                new_name = None
-            else:
-                while True:
-                    new_name = input(f"Enter name for column no. {i + 1} (s to skip): ").strip()
-                    if new_name.lower() == "s":
-                        new_name = None
-                        skip_custom_name = True
-                    elif not new_name:
-                        print("Column name cannot be empty")
-                        continue
-                    elif new_name.lower() in (col.lower() for col in columns_name):
-                        print(f"Column name '{new_name}' already exists. Please choose a different name")
-                        continue
-                    break
-            columns_name.append(new_name)
-        return columns_name
-    
-    def _prompt_random_type(self, column_length: int) -> list[int]:
-        print("Choose random type (by index):\n"
-              "1. int\n"
-              "2. float\n"
-              "3. string")
-        print("or type s to use random type for the rest of the columns left\n"
-              "----------")
-        skip_custom_type = False
-        columns_type = []
-        for i in range(column_length):
-            if skip_custom_type:
-                type_index = None
-            else:
-                type_index = self._prompt_index(message=f"Enter type for column no. {i + 1} (s to skip): ",
-                                                min_value=1, max_value=3, skip_option=True)
-                if isinstance(type_index, str) and type_index.lower().strip() == "s":
-                    type_index = None
-                    skip_custom_type = True
-            columns_type.append(type_index)
-        return columns_type
-                
-class GeneratorCLI(_BaseCLI):
+class GeneratorCLI(BaseCLI):
     def __init__(self, generator_logic, setting_cli):
         self.logic = generator_logic
         self.setting = setting_cli
-    
-    @_BaseCLI._cli_decorator
+
     def generate_random_dataset(self, **kwargs) -> None:
+        if not self._validate_file_is_empty():
+            return
+        
         if not kwargs:
-            column_length, row_length = self._prompt_row_column_length()
+            column_length, row_length = self._prompt_column_row_length("Enter column length: ",
+                                                                       "Enter row length: ")
         else:
             column_length = kwargs.get("column_length")
             row_length = kwargs.get("row_length")
@@ -136,9 +25,11 @@ class GeneratorCLI(_BaseCLI):
         except StopIteration as e:
             runtime = e.value
         print(f"Dataset generated successfully in {runtime:.2f}s!")
-        
-    @_BaseCLI._cli_decorator
+
     def generate_custom_random_dataset(self) -> None:
+        if not self._validate_file_is_empty():
+            return
+        
         self.setting.show_random_config()
         print("----------")
         self.setting.show_all_filepath()
@@ -177,3 +68,23 @@ class GeneratorCLI(_BaseCLI):
                     self.setting.update_dataset_filepath()
                 case 4:
                     break
+                
+    def _validate_file_is_empty(self) -> bool:
+        try:
+            #initiate filepath registration then validate it
+            self.logic.initiate_filepath_registration()
+            should_run = True
+
+        except FileNotEmptyError:
+            print("File destination already has data inside it, overwrite?")
+            should_run = self._prompt_option()
+
+        except InvalidFileTypeError as e:
+            print(e)
+            should_run = False
+
+        except FilepathNotRegisteredError as e:
+            print(e)
+            should_run = False
+
+        return should_run

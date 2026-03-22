@@ -19,7 +19,7 @@ class FileError(AppError):
     pass
 
 class InvalidFileTypeError(FileError):
-    """Raisen when the file type is not a valid type"""
+    """Raised when the file type is not a valid type"""
     pass
 
 class FileNotFoundAppError(FileError):

@@ -1,130 +1,29 @@
-from typing import get_args
 from dataclasses import asdict
-from typing import Literal
-from core.utils import Helper
-from core.models.config_models import GeneratorConfig, RandomConfig, STRING_TYPES
-from core.exceptions import (InputError, InvalidFilepathError, RowColumnLengthError,
-                             InvalidMinMaxValueError, InvalidFloatRoundError, InvalidStringTypeError,
-                             InvalidConfigTypeError)
+from core.generator.base_cli import BaseCLI
+from core.models.config_models import RandomConfig
 
-class _BaseCLI:
-    @staticmethod
-    def _cli_decorator(func):
-        def wrapper(self):
-            if self.use_decorator:
-                print("----------")
-            func(self)
-            if self.use_decorator:
-                print("----------")
-        return wrapper
-    
-    def _prompt_index(self, message: str, min_value: int, max_value: int) -> int:
-        while True:
-            try:
-                index = input(message)
-                if Helper.is_digit_in_range(index, min_value, max_value):
-                    return int(index)
-            except InputError as e:
-                print(e)
-                
-    def _prompt_value(self, value_type: Literal["int", "float"], input_message: str) -> int | float:
-        converters = {"int": (int,), "float": (int, float)}
-        expected_type = " or ".join(v.__name__  for v in converters[value_type])
-        while True:
-            value = input(input_message)
-            for convert in converters[value_type]:
-                try:
-                    return convert(value)
-                except ValueError:
-                    pass
-            print(f"Invalid value type!, expected value type: {expected_type}")
-                            
-    def _prompt_filepath(self, message: str) -> str:
-        while True:
-            try:
-                new_filepath = input(message)
-                GeneratorConfig.validate_filepath(new_filepath)
-                return new_filepath
-            except InvalidFilepathError as e:
-                print(e)
-    
-    def _prompt_column_row_length(self, column_message: str, row_message: str) -> tuple[int, int]:
-        while True:
-            try:
-                column_length = self._prompt_value("int", column_message)
-                GeneratorConfig.validate_column_length(column_length)
-                break
-            except RowColumnLengthError as e:
-                print(e)
-        while True:
-            try:
-                row_length = self._prompt_value("int", row_message)
-                GeneratorConfig.validate_row_length(row_length)
-                break
-            except RowColumnLengthError as e:
-                print(e)
-        return column_length, row_length
-                    
-    def _prompt_random_min_max(self, value_type: str, min_message: str, max_message: str) -> tuple[int, int]:
-        min_value = self._prompt_value(value_type, min_message)
-        while True:
-            try:
-                max_value = self._prompt_value(value_type, max_message)
-                GeneratorConfig.validate_min_max(value_type, min_value, max_value)
-                break
-            except InvalidMinMaxValueError as e:
-                print(e)
-        return min_value, max_value
-    
-    def _prompt_round_value(self, message: str) -> int:
-        while True:
-            try:
-                round_value = self._prompt_value("int", message)
-                GeneratorConfig.validate_float_round(round_value)
-                return round_value
-            except InvalidFloatRoundError as e:
-                print(e)
-
-    def  _prompt_string_type(self, message: str) -> str:
-        string_types = get_args(STRING_TYPES)
-        for index, string_type in enumerate(string_types, 1):
-            print(f"{index}. {string_type}")
-        while True:
-            try:
-                index = self._prompt_index(message=message, min_value=1, max_value=3)
-                chosen_type = string_types[index-1]
-                GeneratorConfig.validate_string_type(chosen_type)
-                return chosen_type
-            except InvalidStringTypeError as e:
-                print(e)
-            
-class GeneratorSettingCLI(_BaseCLI):
+class GeneratorSettingCLI(BaseCLI):
     RANDOM_CONFIG = ["column_row_length", "int_min_max", "float_min_max",
                      "float_round", "string_length", "string_type"]
     
-    def __init__(self, logic, use_decorator: bool = True):
+    def __init__(self, logic):
         self.logic = logic
-        self.use_decorator = use_decorator
     
-    @_BaseCLI._cli_decorator
     def show_all_filepath(self) -> None:
         print("Current config filepath: data/config.yaml")
         print(f"Current dataset filepath: {self.logic.get_dataset_filepath()}")
-    
-    @_BaseCLI._cli_decorator
+
     def update_dataset_filepath(self) -> None:
         new_filepath = self._prompt_filepath("Enter new filepath for generated dataset: ")
         self.logic.change_dataset_filepath(new_filepath)
         print("Dataset filepath updated successfully!")
-        
-    @_BaseCLI._cli_decorator
+
     def show_random_config(self) -> None:
         print("Randomizer configuration: ")
         random_config_data = self.logic.get_random_config()
         for key, value in asdict(random_config_data).items():
             print(f"  {key.replace("_", " ")}: {value}")
-        
-    @_BaseCLI._cli_decorator
+
     def change_random_config(self) -> None:
         random_config = self.logic.get_random_config()
         counter = 1
@@ -161,8 +60,7 @@ class GeneratorSettingCLI(_BaseCLI):
                 string_type = self._prompt_string_type("Enter string type for random string: ")
                 random_config.string_type = string_type
         self.logic.change_random_config(random_config)
-        
-    @_BaseCLI._cli_decorator
+
     def update_random_configs(self) -> None:
         random_config = {}
         #input column and row length
