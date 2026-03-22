@@ -10,13 +10,13 @@ STRING_TYPES = Literal["uppercase", "lowercase", "mixed"]
 class IntConfig:
     size: int
     int_min: int
-    int_max: int    
+    int_max: int
     
 @dataclass
 class FloatConfig:
     size: int
-    float_min: int
-    float_max: int
+    float_min: int | float
+    float_max: int | float
     float_round: int
 
 @dataclass
@@ -32,8 +32,8 @@ class RandomConfig:
     row_length: int
     int_min: int
     int_max: int
-    float_min: int
-    float_max: int
+    float_min: int | float
+    float_max: int | float
     float_round: int
     string_length: int
     string_type: str
@@ -67,8 +67,8 @@ class GeneratorConfig:
     row_length: int
     int_min: int
     int_max: int
-    float_min: int
-    float_max: int
+    float_min: int | float
+    float_max: int | float
     float_round: int
     string_length: int
     string_type: str
@@ -76,7 +76,8 @@ class GeneratorConfig:
     def __post_init__(self) -> None:
         GeneratorConfig.validate_type(**{f.name: getattr(self, f.name) for f in fields(self)})
         GeneratorConfig.validate_filepath(self.dataset_filepath)
-        GeneratorConfig.validate_row_column_length(self.column_length, self.row_length)
+        GeneratorConfig.validate_column_length(self.column_length)
+        GeneratorConfig.validate_row_length(self.row_length)
         GeneratorConfig.validate_min_max("int", self.int_min, self.int_max)
         GeneratorConfig.validate_min_max("float", self.float_min, self.float_max)
         GeneratorConfig.validate_float_round(self.float_round)
@@ -126,17 +127,20 @@ class GeneratorConfig:
             raise InvalidFilepathError("dataset file must be a csv file (example: data/file.csv)")
 
     @staticmethod
-    def validate_row_column_length(column_length: int, row_length: int) -> None:
+    def validate_column_length(column_length: int) -> None:
         if column_length < 1:
             raise RowColumnLengthError("Error: (column length) cannot be less than 1!")
+        
+    @staticmethod
+    def validate_row_length(row_length: int) -> None:
         if row_length < 1:
             raise RowColumnLengthError("Error: (row length) cannot be less than 1!")
         
     @staticmethod
     def validate_min_max(value_type: str, min_value: int, max_value: int) -> None:
         if min_value >= max_value:
-            raise InvalidMinMaxValueError(f"Error: {value_type} max value ({max_value}) "
-                                          f"has to be higher than {value_type} max value ({min_value})!")
+            raise InvalidMinMaxValueError(f"Error: {value_type}_max value ({max_value}) "
+                                          f"has to be higher than {value_type}_min value ({min_value})!")
     
     @staticmethod
     def validate_float_round(float_round: int) -> None:

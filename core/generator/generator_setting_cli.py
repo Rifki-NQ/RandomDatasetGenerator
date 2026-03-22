@@ -27,53 +27,59 @@ class _BaseCLI:
             except InputError as e:
                 print(e)
                 
-    def _prompt_value(self, value_type: Literal["int", "numbers"], input_message: str) -> int | float:
-        converters = {"int": (int,), "numbers": (int, float)}
+    def _prompt_value(self, value_type: Literal["int", "float"], input_message: str) -> int | float:
+        converters = {"int": (int,), "float": (int, float)}
+        expected_type = " or ".join(v.__name__  for v in converters[value_type])
         while True:
             value = input(input_message)
             for convert in converters[value_type]:
                 try:
                     return convert(value)
                 except ValueError:
-                    pass 
-            print(f"Error: expected value type: {converters[value_type]}")
+                    pass
+            print(f"Invalid value type!, expected value type: {expected_type}")
                             
     def _prompt_filepath(self, message: str) -> str:
         while True:
             try:
                 new_filepath = input(message)
-                GeneratorConfig.validate_type(dataset_filepath=new_filepath)
                 GeneratorConfig.validate_filepath(new_filepath)
                 return new_filepath
-            except (InvalidConfigTypeError, InvalidFilepathError) as e:
+            except InvalidFilepathError as e:
                 print(e)
     
     def _prompt_column_row_length(self, column_message: str, row_message: str) -> tuple[int, int]:
         while True:
             try:
-                column_length = input(column_message)
-                row_length = input(row_message)
-                GeneratorConfig.validate_type(column_length=column_length, row_length=row_length)
-                GeneratorConfig.validate_row_column_length(column_length, row_length)
-                return column_length, row_length
-            #fix when error invalid type = row_length, printed invalid type = column_length
-            except (InvalidConfigTypeError,RowColumnLengthError) as e:
+                column_length = self._prompt_value("int", column_message)
+                GeneratorConfig.validate_column_length(column_length)
+                break
+            except RowColumnLengthError as e:
                 print(e)
-        
-    def _prompt_random_min_max(self, value_type: str, min_message: str, max_message: str) -> tuple[int, int]:
         while True:
             try:
-                min_value = self._prompt_value(min_message)
-                max_value = self._prompt_value(max_message)
+                row_length = self._prompt_value("int", row_message)
+                GeneratorConfig.validate_row_length(row_length)
+                break
+            except RowColumnLengthError as e:
+                print(e)
+        return column_length, row_length
+                    
+    def _prompt_random_min_max(self, value_type: str, min_message: str, max_message: str) -> tuple[int, int]:
+        min_value = self._prompt_value(value_type, min_message)
+        while True:
+            try:
+                max_value = self._prompt_value(value_type, max_message)
                 GeneratorConfig.validate_min_max(value_type, min_value, max_value)
-                return min_value, max_value
+                break
             except InvalidMinMaxValueError as e:
                 print(e)
+        return min_value, max_value
     
     def _prompt_round_value(self, message: str) -> int:
         while True:
             try:
-                round_value = self._prompt_value(message)
+                round_value = self._prompt_value("int", message)
                 GeneratorConfig.validate_float_round(round_value)
                 return round_value
             except InvalidFloatRoundError as e:
@@ -149,7 +155,7 @@ class GeneratorSettingCLI(_BaseCLI):
                 float_round = self._prompt_round_value("Enter round value for random float: ")
                 random_config.float_round = float_round
             case 5:
-                string_length = self._prompt_value("Enter string length for random string: ")
+                string_length = self._prompt_value("int", "Enter string length for random string: ")
                 random_config.string_length = string_length
             case 6:
                 string_type = self._prompt_string_type("Enter string type for random string: ")
@@ -178,7 +184,7 @@ class GeneratorSettingCLI(_BaseCLI):
         float_round = self._prompt_round_value("Enter round value for random float: ")
         random_config["float_round"] = float_round
         #input string length
-        string_length = self._prompt_value("Enter string length for random string: ")
+        string_length = self._prompt_value("int", "Enter string length for random string: ")
         random_config["string_length"] = string_length
         #input string type
         string_type = self._prompt_string_type("Enter string type for random string: ")
