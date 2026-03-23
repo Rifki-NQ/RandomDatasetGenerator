@@ -12,7 +12,7 @@ class GeneratorCLI(BaseCLI):
             return
         
         if not kwargs:
-            column_length, row_length = self._prompt_column_row_length("Enter column length: ",
+            column_length, row_length = self.prompt_column_row_length("Enter column length: ",
                                                                        "Enter row length: ")
         else:
             column_length = kwargs.get("column_length")
@@ -39,7 +39,7 @@ class GeneratorCLI(BaseCLI):
                   "2. Change random configuration\n"
                   "3. Change dataset filepath\n"
                   "4. Quit")
-            option = self._prompt_index("Choose an action (by index): ", 1, 4)
+            option = self.prompt_index("Choose an action (by index): ", 1, 4)
             print("----------")
             match option:
                 case 1:
@@ -77,7 +77,7 @@ class GeneratorCLI(BaseCLI):
 
         except FileNotEmptyError:
             print("File destination already has data inside it, overwrite?")
-            should_run = self._prompt_option()
+            should_run = self.prompt_option()
 
         except InvalidFileTypeError as e:
             print(e)
@@ -88,3 +88,47 @@ class GeneratorCLI(BaseCLI):
             should_run = False
 
         return should_run
+                
+    def _prompt_random_type(self, column_length: int) -> list[int]:
+        print("Choose random type (by index):\n"
+              "1. int\n"
+              "2. float\n"
+              "3. string")
+        print("or type s to use random type for the rest of the columns left\n"
+              "----------")
+        skip_custom_type = False
+        columns_type = []
+        for i in range(column_length):
+            if skip_custom_type:
+                type_index = None
+            else:
+                type_index = self.prompt_index(message=f"Enter type for column no. {i + 1} (s to skip): ",
+                                                min_value=1, max_value=3, skip_option=True)
+                if isinstance(type_index, str) and type_index.lower().strip() == "s":
+                    type_index = None
+                    skip_custom_type = True
+            columns_type.append(type_index)
+        return columns_type
+    
+    def _prompt_column_name(self, column_length: int) -> list[str | None]:
+        print("Enter s to skip custom name for the rest of the columns left")
+        skip_custom_name = False
+        columns_name = []
+        for i in range(column_length):
+            if skip_custom_name:
+                new_name = None
+            else:
+                while True:
+                    new_name = input(f"Enter name for column no. {i + 1} (s to skip): ").strip()
+                    if new_name.lower() == "s":
+                        new_name = None
+                        skip_custom_name = True
+                    elif not new_name:
+                        print("Column name cannot be empty")
+                        continue
+                    elif new_name.lower() in (col.lower() for col in columns_name):
+                        print(f"Column name '{new_name}' already exists. Please choose a different name")
+                        continue
+                    break
+            columns_name.append(new_name)
+        return columns_name

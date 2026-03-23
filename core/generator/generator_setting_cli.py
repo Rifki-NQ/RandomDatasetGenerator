@@ -1,6 +1,9 @@
+from typing import get_args
 from dataclasses import asdict
 from core.generator.base_cli import BaseCLI
-from core.models.config_models import RandomConfig
+from core.models.config_models import GeneratorConfig, RandomConfig, STRING_TYPES
+from core.exceptions import (InvalidFilepathError, InvalidMinMaxValueError, InvalidFloatRoundError,
+                             InvalidStringTypeError)
 
 class GeneratorSettingCLI(BaseCLI):
     RANDOM_CONFIG = ["column_row_length", "int_min_max", "float_min_max",
@@ -33,10 +36,10 @@ class GeneratorSettingCLI(BaseCLI):
             else:
                 print(f"{counter}. {key.replace("_", " ")}: {value}")
                 counter+=1
-        index = self._prompt_index("\nSelect which config to change: ", 1, (len(asdict(random_config)) - 3))
+        index = self.prompt_index("\nSelect which config to change: ", 1, (len(asdict(random_config)) - 3))
         match index:
             case 1:
-                column_length, row_length = self._prompt_column_row_length("Enter column length: ",
+                column_length, row_length = self.prompt_column_row_length("Enter column length: ",
                                                                            "Enter row length: ")
                 random_config.column_length = column_length
                 random_config.row_length = row_length
@@ -54,7 +57,7 @@ class GeneratorSettingCLI(BaseCLI):
                 float_round = self._prompt_round_value("Enter round value for random float: ")
                 random_config.float_round = float_round
             case 5:
-                string_length = self._prompt_value("int", "Enter string length for random string: ")
+                string_length = self.prompt_value("int", "Enter string length for random string: ")
                 random_config.string_length = string_length
             case 6:
                 string_type = self._prompt_string_type("Enter string type for random string: ")
@@ -64,7 +67,7 @@ class GeneratorSettingCLI(BaseCLI):
     def update_random_configs(self) -> None:
         random_config = {}
         #input column and row length
-        column_length, row_length = self._prompt_column_row_length("Enter column length: ",
+        column_length, row_length = self.prompt_column_row_length("Enter column length: ",
                                                                    "Enter row length: ")
         random_config["column_length"] = column_length
         random_config["row_length"] = row_length
@@ -82,10 +85,52 @@ class GeneratorSettingCLI(BaseCLI):
         float_round = self._prompt_round_value("Enter round value for random float: ")
         random_config["float_round"] = float_round
         #input string length
-        string_length = self._prompt_value("int", "Enter string length for random string: ")
+        string_length = self.prompt_value("int", "Enter string length for random string: ")
         random_config["string_length"] = string_length
         #input string type
         string_type = self._prompt_string_type("Enter string type for random string: ")
         random_config["string_type"] = string_type
         
         self.logic.change_random_config(RandomConfig(**random_config))
+        
+    def _prompt_filepath(self, message: str) -> str:
+        while True:
+            try:
+                new_filepath = input(message).strip().replace(" ", "_")
+                GeneratorConfig.validate_filepath(new_filepath)
+                return new_filepath
+            except InvalidFilepathError as e:
+                print(e)
+                    
+    def _prompt_random_min_max(self, value_type: str, min_message: str, max_message: str) -> tuple[int, int]:
+        min_value = self.prompt_value(value_type, min_message)
+        while True:
+            try:
+                max_value = self.prompt_value(value_type, max_message)
+                GeneratorConfig.validate_min_max(value_type, min_value, max_value)
+                break
+            except InvalidMinMaxValueError as e:
+                print(e)
+        return min_value, max_value
+    
+    def _prompt_round_value(self, message: str) -> int:
+        while True:
+            try:
+                round_value = self.prompt_value("int", message)
+                GeneratorConfig.validate_float_round(round_value)
+                return round_value
+            except InvalidFloatRoundError as e:
+                print(e)
+                
+    def  _prompt_string_type(self, message: str) -> str:
+        string_types = get_args(STRING_TYPES)
+        for index, string_type in enumerate(string_types, 1):
+            print(f"{index}. {string_type}")
+        while True:
+            try:
+                index = self.prompt_index(message=message, min_value=1, max_value=3)
+                chosen_type = string_types[index-1]
+                GeneratorConfig.validate_string_type(chosen_type)
+                return chosen_type
+            except InvalidStringTypeError as e:
+                print(e)
