@@ -33,27 +33,29 @@ A CLI-based tool for generating random datasets as CSV files, with configurable 
 
 ```
 RandomDatasetGenerator/
-├── main.py                          # Entry point; menu engine and app bootstrap
+├── main.py                             # Entry point; menu engine and app bootstrap
 ├── requirements.txt
 ├── core/
-│   ├── exceptions.py                # Custom exception hierarchy
-│   ├── utils.py                     # Helper, DataIO (CSV/YAML handlers), Randomizer
+│   ├── exceptions.py                   # Custom exception hierarchy
+│   ├── utils.py                        # Helper, DataIO (CSV/YAML handlers), Randomizer
 │   ├── generator/
-│   │   ├── generator_cli.py         # CLI layer for dataset generation
-│   │   ├── generator_logic.py       # Generation logic (dataset building, progress tracking)
-│   │   ├── generator_setting_cli.py # CLI layer for settings
-│   │   └── generator_setting_logic.py # Logic for reading/writing config
+│   │   ├── base_cli.py                 # CLI helper/utils for setting and generator CLI
+│   │   ├── generator_cli.py            # CLI layer for dataset generation
+│   │   ├── generator_logic.py          # Generation logic (dataset building, progress tracking)
+│   │   ├── generator_setting_cli.py    # CLI layer for settings
+│   │   └── generator_setting_logic.py  # Logic for reading/writing config
 │   └── models/
-│       ├── config_models.py         # Dataclasses: IntConfig, FloatConfig, StringConfig
-│       └── progress_models.py       # GenerationProgress tracker
+│       ├── config_models.py            # Dataclasses: GeneratorConfig (config model and validation)
+│       └── progress_models.py          # GenerationProgress tracker
 ├── factories/
-│   └── feature_factory.py           # Container (dependency wiring) + FeatureFactory
+│   └── feature_factory.py              # Container (dependency wiring) + FeatureFactory
 ├── data/
-│   ├── config.yaml                  # Persistent configuration file
-│   └── *.csv                        # Generated dataset outputs
+│   ├── config.yaml                     # Persistent configuration file
+│   └── *.csv                           # Generated dataset outputs
 └── tests/
     ├── test_get_dict_depth_logic.py
-    └── test_randomizer.py
+    ├── test_randomizer.py
+    └── test_cli_prompt_value.py
 ```
 
 ---
@@ -137,6 +139,7 @@ The app stores its configuration in `data/config.yaml`. The configurable values 
 
 | Key             | Description                                              |
 |-----------------|----------------------------------------------------------|
+| `dataset_filepath` | Output path for generated CSV files                   |
 | `column_length` | Number of columns to generate                            |
 | `row_length`    | Number of rows to generate                               |
 | `int_min`       | Minimum value for random integers (inclusive)            |
@@ -146,7 +149,6 @@ The app stores its configuration in `data/config.yaml`. The configurable values 
 | `float_round`   | Decimal places for floats (1–8)                          |
 | `string_length` | Character length of generated strings                    |
 | `string_type`   | Case of generated strings: `uppercase`, `lowercase`, or `mixed` |
-| `dataset_filepath` | Output path for generated CSV files                   |
 
 ---
 
@@ -174,5 +176,5 @@ The test suite covers:
 
 - `test_randomizer.py` — verifies that the `Randomizer` produces values of the correct type, size, and range; that float rounding is applied correctly; that string length matches configuration; and that seeded generation is fully reproducible across two independent instances.
 - `test_get_dict_depth_logic.py` — verifies the recursive dict-depth utility used internally by the app.
-
+- `test_cli_prompt_value.py` - verifies that BaseCLI.prompt_value returns the correct type, skipping invalid inputs until a valid one is provided
 ---
