@@ -1,4 +1,5 @@
 from core.generator.base_cli import BaseCLI
+from core.models.enums import RandomTypes
 from core.exceptions import (InvalidFileTypeError, FilepathNotRegisteredError, ConfigDataError,
                              FileNotEmptyError)
                 
@@ -89,7 +90,7 @@ class GeneratorCLI(BaseCLI):
 
         return should_run
                 
-    def _prompt_random_type(self, column_length: int) -> list[int]:
+    def _prompt_random_type(self, column_length: int) -> list[RandomTypes]:
         print("Choose random type (by index):\n"
               "1. int\n"
               "2. float\n"
@@ -107,7 +108,7 @@ class GeneratorCLI(BaseCLI):
                 if isinstance(type_index, str) and type_index.lower().strip() == "s":
                     type_index = None
                     skip_custom_type = True
-            columns_type.append(type_index)
+            columns_type.append(RandomTypes(type_index))
         return columns_type
     
     def _prompt_column_name(self, column_length: int) -> list[str | None]:

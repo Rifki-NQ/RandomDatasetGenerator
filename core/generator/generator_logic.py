@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 import time
 from typing import Generator
+from core.models.enums import RandomTypes
 from core.models.progress_models import GenerationProgress
 from core.models.config_models import IntConfig, FloatConfig, StringConfig
 from core.exceptions import FileNotEmptyError
@@ -41,7 +42,7 @@ class GeneratorLogic:
         end = time.perf_counter()
         return end - start
         
-    def generate_custom_dataset(self, column_names: list[str], random_types: list[int]) -> Generator[int, None, float]:
+    def generate_custom_dataset(self, column_names: list[str], random_types: list[RandomTypes]) -> Generator[int, None, float]:
         column_length = self.get_column_length()
         
         #cli data validation
@@ -59,7 +60,7 @@ class GeneratorLogic:
         #dataset generation per column
         generated_dataset = {}
         for column in range(column_length):
-            random_values = self._get_random_by_index(random_index=random_types[column])
+            random_values = self._get_random_by_type(random_types[column])
             generated_dataset[column_names[column]] = self._normalize_random_value(value=random_values)
             yield generation_update.send_update(column + 1)
         self.csv_file_handler.save(pd.DataFrame(generated_dataset))
@@ -78,33 +79,24 @@ class GeneratorLogic:
         self.csv_file_handler.register_filepath(Path(dataset_filepath))
         return Path(dataset_filepath)
         
-    def _get_random_int(self, config: IntConfig) -> int | np.ndarray:
-        return self.rng.get_random_int(config)
-    
-    def _get_random_float(self, config: FloatConfig) -> float | np.ndarray:
-        return self.rng.get_random_float(config)
-    
-    def _get_random_string(self, config: StringConfig) -> str | list[str]:
-        return self.rng.get_random_string(config)
-        
-    def _get_random_by_index(self, random_index: int) -> int | float | str | np.ndarray | list[str]:
+    def _get_random_by_type(self, random_type: RandomTypes) -> int | float | str | np.ndarray | list[str]:
         config = self.setting.get_random_config()
-        #1 = int, 2 = float, 3 = string
-        if random_index == 1:
-            return self._get_random_int(config.int_config())
-        elif random_index == 2:
-            return self._get_random_float(config.float_config())
-        elif random_index == 3:
-            return self._get_random_string(config.string_config())
-        else:
-            raise ValueError("Error: invalid random index provided!")
+        match random_type:
+            case RandomTypes.INT:
+                return self.rng.get_random_int(config.int_config())
+            case RandomTypes.FLOAT:
+                return self.rng.get_random_float(config.float_config())
+            case RandomTypes.STRING:
+                return self.rng.get_random_string(config.string_config())
+            case _:
+                raise ValueError("Error: invalid random type provided!")
         
-    #validate random types, fill random type with number 1 to 3 if random type is None
-    def _validate_random_type(self, random_types: list[int | None]) -> list[int]:
+    #convert RandomTypes.None into valid RandomTypes option (INT, FLOAT, STRING)
+    def _validate_random_type(self, random_types: list[RandomTypes]) -> list[RandomTypes]:
         new_random_type = []
         for random_type in random_types:
-            if random_type is None:
-                new_random_type.append(self.rng.get_random_int(IntConfig(size=1, int_min=1, int_max=4)))
+            if random_type == RandomTypes.RANDOM:
+                new_random_type.append(RandomTypes(self.rng.get_random_int(IntConfig(size=1, int_min=1, int_max=4))))
             else:
                 new_random_type.append(random_type)
         return new_random_type
