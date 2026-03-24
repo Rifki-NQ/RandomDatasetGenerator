@@ -158,12 +158,12 @@ class Randomizer:
     #generation is theoretically slower since it has to produce many random values
     def get_random_mixed(self, size: int = 1) -> list[Any] | Any:
         value = []
-        rng_choice_range = self.rng.choice([2, 3, 4, 5, 6, 7, 8, 9, 10])
-        rng_choice_round_range = self.rng.choice([2, 3, 4, 5])
-        random_choices = [lambda: self.get_random_int(IntConfig(size=1, int_min=1, int_max=rng_choice_range)),
-                         lambda: self.get_random_float(FloatConfig(size=1, float_min=1, float_max=rng_choice_range, float_round=rng_choice_round_range)),
-                         lambda: self.get_random_string(StringConfig(size=1, string_length=rng_choice_range, string_type="mixed"))]
-        for i in range(size):
+        rng_choice_range = lambda: self.rng.choice([2, 3, 4, 5, 6, 7, 8, 9, 10])
+        rng_choice_round_range = lambda: self.rng.choice([1, 2, 3, 4, 5, 6, 7, 8])
+        random_choices = [lambda: self.get_random_int(IntConfig(size=1, int_min=1, int_max=rng_choice_range())),
+                         lambda: self.get_random_float(FloatConfig(size=1, float_min=1, float_max=rng_choice_range(), float_round=rng_choice_round_range())),
+                         lambda: self.get_random_string(StringConfig(size=1, string_length=rng_choice_range(), string_type="mixed"))]
+        for _ in range(size):
             choosen_type = self.rng.choice(random_choices)
             value.append(choosen_type())
         if size == 1:
