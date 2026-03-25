@@ -12,6 +12,7 @@ A CLI-based tool for generating random datasets as CSV files, with configurable 
 - [Configuration](#configuration)
 - [Architecture](#architecture)
 - [Running Tests](#running-tests)
+- [TODO](#todo)
 
 ---
 
@@ -177,4 +178,10 @@ The test suite covers:
 - `test_randomizer.py` — verifies that the `Randomizer` produces values of the correct type, size, and range; that float rounding is applied correctly; that string length matches configuration; and that seeded generation is fully reproducible across two independent instances.
 - `test_get_dict_depth_logic.py` — verifies the recursive dict-depth utility used internally by the app.
 - `test_cli_prompt_value.py` - verifies that BaseCLI.prompt_value returns the correct type, skipping invalid inputs until a valid one is provided
+---
+
+## TODO
+
+- Add `schema support` for dataset generation
+
 ---
